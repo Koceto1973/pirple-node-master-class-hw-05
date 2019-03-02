@@ -21,6 +21,21 @@ environments.staging = {
   },
 };
 
+// Testing environment
+environments.testing = {
+  'httpsPort' : 5002,
+  'envName' : 'testing',
+  'hashingSecret' : cnfg.hashingSecret,
+  'authTokenStripe':cnfg.testAuthTokenStripe,
+  'apiKeyMailgun':cnfg.apiKeyMailgun,
+  'domainNameMailgun':cnfg.domainNameMailgun,
+  'templateGlobals' : {
+    'appName' : 'Swifty Tasty Pizza',
+    'companyName' : 'Easy, Inc.',
+    'yearCreated' : '2019'
+  },
+};
+
 // Production environment
 environments.production = {
   'httpsPort' : process.env.PORT,

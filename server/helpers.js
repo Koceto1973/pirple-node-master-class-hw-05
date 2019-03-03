@@ -24,7 +24,7 @@ helpers.parseJsonToObject = function(str){
 // Create a SHA256 hash
 helpers.hash = function(str){
   if(typeof(str) == 'string' && str.length > 0){
-    var hash = crypto.createHmac('sha256', config.hashingSecret).update(str).digest('hex');
+    var hash = crypto.createHmac('sha512', config.hashingSecret).update(str).digest('hex');
     return hash;
   } else {
     return false;
@@ -36,7 +36,7 @@ helpers.createRandomString = function(strLength){
   strLength = typeof(strLength) == 'number' && strLength > 0 ? strLength : false;
   if(strLength){
     // Define all the possible characters that could go into a string
-    var possibleCharacters = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    var possibleCharacters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789';
 
     // Start the final string
     var str = '';
@@ -61,7 +61,7 @@ helpers.verifyOrder = function(order){
   let count = 0;
   let acceptable = true;
   Array.prototype.forEach.call(order, (item)=>{
-    if( item<0 || item>5 ) { acceptable = false; }
+    if( (typeof item) !== 'number' || item%1 !== 0 || item<0 || item>5 ) { acceptable = false; }
     count +=item;
   });
 
@@ -132,7 +132,14 @@ helpers.createStripePayment = function(token,amount,callback){
 
 // calculates the ttl amount in cents, based on ordered pizzas and their prices
 helpers.calculatePaymentAmount = function(order){
-  var prices = [2.90,3.60,3.30,3.70,2.80,4.20,3.40,3.50,3.20,3.60,4.20,3.50,3.60,4.30,4.00,3.90,4.20];
+  var prices = [];
+  var menu = require('./.data/menu/menu.json');
+  for ( item in menu){
+    if (menu.hasOwnProperty(item)){
+      prices.push(menu[item]);
+    }
+  }
+  
   var amount = 0;
   var index = 0;
 

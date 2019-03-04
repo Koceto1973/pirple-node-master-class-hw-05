@@ -51,6 +51,8 @@ server.httpsServer = https.createServer(server.httpsServerOptions,function(req,r
       // Check for a matching path for a handler, use notFound handler as default
       var chosenHandler = '';
       switch ( trimmedPath ) { 
+        case 'ping'           : chosenHandler = handlers.ping; break;
+        
         case ''               : chosenHandler = handlers.template; break;
         
         case 'account/create' : chosenHandler = handlers.template; break;

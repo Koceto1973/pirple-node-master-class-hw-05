@@ -2,6 +2,7 @@
 
 // Override the NODE_ENV variable
 process.env.NODE_ENV = 'testing';
+process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0; // ignore https error on self signed certificate
 
 // Application logic for the test runner
 _app = {};

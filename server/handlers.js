@@ -9,6 +9,10 @@ var templates = require('./templateData.json');
 // Define all the handlers
 var handlers = {};
 
+handlers.ping = function(data,callback){
+  callback(200);
+};
+
 // Not-Found
 handlers.notFound = function(data,callback){
   callback(404);

@@ -46,7 +46,8 @@ app.client.request = function(headers,path,method,queryStringObject,payload,call
 
   // Form the http request as a JSON type
   var xhr = new XMLHttpRequest();
-  xhr.open(method, requestUrl, true); console.log('xhr request url', requestUrl);
+  xhr.open(method, requestUrl, true); 
+  // console.log('xhr request url', requestUrl);
   xhr.setRequestHeader("Content-type", "application/json"); // front end asking it's back end
 
   // For each header sent, add it to the request

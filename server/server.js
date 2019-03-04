@@ -98,13 +98,6 @@ server.httpsServer = https.createServer(server.httpsServerOptions,function(req,r
         debug(e);
         server.processHandlerResponse(res,method,trimmedPath,500,{'Error' : 'An unknown error has occured'},'json');
       }
-
-      // Route the request to the handler specified in the router
-      chosenHandler(data,function(statusCode,payload, contentType){ // function is callback, gets args from specific handler by callback(code, payload)
-        
-        
-      });
-
   });
 });
 

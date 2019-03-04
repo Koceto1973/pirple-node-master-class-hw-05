@@ -99,7 +99,10 @@ _app.produceTestReport = function(limit,successes,errors){
   }
   console.log("");
   console.log("--------END TEST REPORT--------");
-  process.exit(0);
+  setTimeout(() => {
+    console.log('app exit after testing...');
+    process.exit(0);
+  }, 1000*5);
 
 };
 

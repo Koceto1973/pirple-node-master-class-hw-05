@@ -54,10 +54,46 @@ api['app.init should not throw'] = function(done){
   },TypeError);
 }
 
-api['ping route test'] = function(done){
+api['ping'] = function(done){
   helpers.createHttpsRequest('GET','/ping',{},{},{},(err,payloadData)=>{
     assert.equal(err,false);
     assert.deepEqual(payloadData,{});
+  });
+
+  done();
+}
+
+api['notFound'] = function(done){
+  helpers.createHttpsRequest('GET','/blabla',{},{},{},(err,payloadData)=>{
+    assert.equal(err,404);
+  });
+  done();
+}
+
+api['users post , token post'] = function(done){
+  // user post
+  helpers.createHttpsRequest('POST','/api/users',{
+    "Content-Type": "application/json"
+  },{},{
+    "name": "Ann",  
+    "email": "ann@test.com",
+    "address": "120th Pirple Cloud, Wonderland",
+    "password": "annspassword"
+  },(err,payloadData)=>{
+    assert.equal(err,false);
+    assert.deepEqual(payloadData,{});
+    // token post
+    helpers.createHttpsRequest('POST','/api/tokens',{
+      "Content-Type": "application/json"
+    },{},{
+      "email": "ann@test.com",
+      "password": "annspassword"
+    },(err,payloadData)=>{
+      assert.equal(err,false);
+      assert.notDeepEqual(payloadData,{});
+      assert.equal('ann@test.com',payloadData.email);
+      helpers.token = JSON.parse(JSON.stringify(payloadData));
+    });
   });
 
   done();

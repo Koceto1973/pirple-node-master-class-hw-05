@@ -8,7 +8,7 @@ var cli = require('./server/cli');
 var app = {};
 
 // Init function
-app.init = function(){
+app.init = function(callback){
 
   // Start the server
   server.init();
@@ -16,9 +16,16 @@ app.init = function(){
   // Start the CLI, but make sure it starts last
   setTimeout(function(){
     cli.init();
+    callback();
   },50);
-
+  
 };
 
-// Self executing
-app.init();
+// do not invoke if loading the module after being required
+// do invoke if loading the module after terminal command: node moduleName
+if(require.main === module){
+  app.init(function(){});
+}
+
+// Export the app, usefull for api testing later on
+module.exports = app;

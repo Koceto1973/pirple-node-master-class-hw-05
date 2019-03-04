@@ -24,6 +24,22 @@ helpers.createHttpsRequest = function(method,path,headers,queries,body,callback)
     "headers": headers
   };
 
+  var counter = 0;
+  var queryString = '?';
+  for(var key in queries){
+    if(queries.hasOwnProperty(key)){
+      counter++;
+      // If at least one query string parameter has already been added, preprend new ones with an ampersand
+      if(counter > 1){
+        queryString += '&';
+      }
+      // Add the key and value
+      queryString += key+'='+queries[key];
+    }
+  }
+
+  if(JSON.stringify(queries)!=='{}') { requestOptions.path = path + queryString; }
+
   // Instantiate the request object
   var req = https.request(requestOptions,function(res){
 
@@ -41,7 +57,6 @@ helpers.createHttpsRequest = function(method,path,headers,queries,body,callback)
     callback(500,e);
   });
 
-  if(JSON.stringify(queries)!=='{}') { req.write(querystring.stringify(queries)); }
   if(JSON.stringify(body)!=='{}') { req.write(JSON.stringify(body)); };
   req.end();
 };
@@ -70,7 +85,8 @@ api['notFound'] = function(done){
   done();
 }
 
-api['users post , token post'] = function(done){
+api['user post , token post, user get, user put'] = function(done){
+  
   // user post
   helpers.createHttpsRequest('POST','/api/users',{
     "Content-Type": "application/json"
@@ -82,6 +98,7 @@ api['users post , token post'] = function(done){
   },(err,payloadData)=>{
     assert.equal(err,false);
     assert.deepEqual(payloadData,{});
+    
     // token post
     helpers.createHttpsRequest('POST','/api/tokens',{
       "Content-Type": "application/json"
@@ -93,6 +110,34 @@ api['users post , token post'] = function(done){
       assert.notDeepEqual(payloadData,{});
       assert.equal('ann@test.com',payloadData.email);
       helpers.token = JSON.parse(JSON.stringify(payloadData));
+
+      // user get
+      helpers.createHttpsRequest('GET','/api/users',{
+        "Content-Type": "application/json",
+        "token": helpers.token.id
+      },{
+        "email": "ann@test.com"
+      },{},(err,payloadData)=>{
+        assert.equal(err,false);
+        assert.notDeepEqual(payloadData,{});
+        assert.equal('ann@test.com',payloadData.email);
+        assert.equal('Ann',payloadData.name);
+  
+        // user put
+        helpers.createHttpsRequest('PUT','/api/users',{
+          "Content-Type": "application/json",
+          "token": helpers.token.id
+        },{},{
+          "email":"ann@test.com",
+          "name": "Annie"
+        },(err,payloadData)=>{
+          assert.equal(err,false);
+          assert.deepEqual(payloadData,{});
+          
+          // user delete
+
+        });
+      });
     });
   });
 

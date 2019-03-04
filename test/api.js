@@ -85,7 +85,8 @@ api['notFound'] = function(done){
   done();
 }
 
-api['user post , token post, user get, user put'] = function(done){
+// users CRUD
+api['user post , token post, user get, user put, user delete, token delete'] = function(done){
   
   // user post
   helpers.createHttpsRequest('POST','/api/users',{
@@ -135,7 +136,25 @@ api['user post , token post, user get, user put'] = function(done){
           assert.deepEqual(payloadData,{});
           
           // user delete
+          helpers.createHttpsRequest('DELETE','/api/users',{
+            "Content-Type": "application/json",
+            "token": helpers.token.id
+          },{
+            "email":"ann@test.com"
+          },{},(err,payloadData)=>{
+            assert.equal(err,false);
+            assert.deepEqual(payloadData,{});
 
+            // token delete
+            helpers.createHttpsRequest('DELETE','/api/tokens',{
+              "Content-Type": "application/json"
+            },{
+              "id": helpers.token.id
+            },{},(err,payloadData)=>{
+              assert.equal(err,false);
+              assert.deepEqual(payloadData,{});
+            });
+          });
         });
       });
     });

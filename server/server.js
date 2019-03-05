@@ -71,7 +71,7 @@ server.httpsServer = https.createServer(server.httpsServerOptions,function(req,r
         case 'api/tokens'         : chosenHandler = handlers.tokens; break;
         case 'api/menu'           : chosenHandler = handlers.menu; break;
         case 'api/orders'         : chosenHandler = handlers.orders; break;
-        case 'api/orders.payments': chosenHandler = handlers.payments; break;
+        case 'api/orders/payments': chosenHandler = handlers.payments; break;
         default               : 
           if (trimmedPath.indexOf('staticAssets') > -1 ){
             chosenHandler = handlers.static; break;

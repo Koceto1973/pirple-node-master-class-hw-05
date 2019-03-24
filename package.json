@@ -1,0 +1,32 @@
+{
+  "name": "pirple-node-master-class-hw-05",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "start watch": "nodemon index.js",
+    "test": "node test/index.js",
+    "test watch": "nodemon test/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Koceto1973/pirple-node-master-class-hw-05.git"
+  },
+  "author": "TeamK",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Koceto1973/pirple-node-master-class-hw-05/issues"
+  },
+  "homepage": "https://github.com/Koceto1973/pirple-node-master-class-hw-05#readme",
+  "devDependencies": {
+    "nodemon": "^1.18.10"
+  },
+  "dependencies": {
+    "mongodb": "^3.2.2",
+    "mongoose": "^5.4.19"
+  }
+}

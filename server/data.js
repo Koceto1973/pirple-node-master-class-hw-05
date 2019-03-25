@@ -7,9 +7,11 @@ var helpers = require('./helpers');
 
 // Container for module (to be exported)
 var data = {};
+var _data = {};
 
 // Base directory of data folder
 data.baseDir = path.join(__dirname,'/.data/');
+_data.baseDir = path.join(__dirname,'/.data/');
 
 // Write data to a file
 data.create = function(dir,file,_data,callback){ // calback(false)
@@ -115,4 +117,5 @@ data.list = function(dir,callback){
 };
 
 // Export the module
-module.exports = data;
+exports.data = data;
+exports._data = _data;

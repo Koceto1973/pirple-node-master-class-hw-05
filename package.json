@@ -7,10 +7,14 @@
     "test": "test"
   },
   "scripts": {
-    "start": "node index.js",
-    "start watch": "nodemon index.js",
-    "test": "node test/index.js",
-    "test watch": "nodemon test/index.js"
+    "staging": "export NODE_ENV=staging || SET \"NODE_ENV=staging\" && node index.js",
+    "staging-watch": "nodemon --exec npm run staging",
+    "testing": "export NODE_ENV=testing || SET \"NODE_ENV=testing\" && node test/index.js",
+    "testing-watch": "nodemon --exec npm run testing",
+    "production": "export NODE_ENV=production || SET \"NODE_ENV=production\" && export PORT || SET \"PORT=6000\" && node index.js",
+    "debug-staging": "nodemon --inspect-brk npm run staging",
+    "debug-testing": "nodemon --inspect-brk npm run testing",
+    "debug-production": "nodemon --inspect-brk npm run production"
   },
   "repository": {
     "type": "git",
@@ -22,9 +26,7 @@
     "url": "https://github.com/Koceto1973/pirple-node-master-class-hw-05/issues"
   },
   "homepage": "https://github.com/Koceto1973/pirple-node-master-class-hw-05#readme",
-  "devDependencies": {
-    "nodemon": "^1.18.10"
-  },
+  "devDependencies": {},
   "dependencies": {
     "mongodb": "^3.2.2",
     "mongoose": "^5.4.19"

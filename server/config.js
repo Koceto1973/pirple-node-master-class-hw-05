@@ -6,6 +6,7 @@ const cnfg = require('./config.json');
 // Container for all environments
 var environments = {};
 
+
 // Staging (default) environment
 environments.staging = {
   'httpsPort' : 3002,

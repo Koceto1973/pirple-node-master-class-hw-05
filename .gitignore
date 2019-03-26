@@ -3,3 +3,5 @@ node_modules/
 server/https.options/
 
 server/config.json
+
+start.sh/

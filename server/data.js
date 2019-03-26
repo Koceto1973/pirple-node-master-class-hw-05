@@ -54,8 +54,14 @@ data_fs.create = function(dir,file,_data,callback){ // callback(false)
 
 };
 
-data_mongo.create = function(){
-  
+data_mongo.create = function(collection, documentName, documentContent, callback){
+  mongo.create(collection,documentName,documentContent,function(err){
+    if (!err) {
+      callback(false);
+    } else {
+      callback(err);
+    }
+  });
 }
 
 // Read data from a file

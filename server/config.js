@@ -1,16 +1,21 @@
 // Create and export configuration variables
 
-// Dependances
-const cnfg = require('./config.json');
+// Determine which environment was passed as a command-line argument
+const currentEnvironment = typeof(process.env.NODE_ENV) == 'string' ? process.env.NODE_ENV.toLowerCase() : '';
+
+const cnfg = currentEnvironment !== 'production' ? require('./config.json') : '';
 
 // Container for all environments
-var environments = {};
-
+const environments = {};
 
 // Staging (default) environment
 environments.staging = {
   'httpsPort' : 3002,
   'envName' : 'staging',
+  'storageType':process.env.NODE_STORAGE,
+  'mongoUser': cnfg.mongoUser,
+  'mongoPassword': cnfg.mongoPassword,
+  'mongoDb': cnfg.mongoDb,
   'hashingSecret' : cnfg.hashingSecret,
   'authTokenStripe':cnfg.testAuthTokenStripe,
   'apiKeyMailgun':cnfg.apiKeyMailgun,
@@ -26,6 +31,10 @@ environments.staging = {
 environments.testing = {
   'httpsPort' : 5002,
   'envName' : 'testing',
+  'storageType':process.env.NODE_STORAGE,
+  'mongoUser': cnfg.mongoUser,
+  'mongoPassword': cnfg.mongoPassword,
+  'mongoDb': cnfg.mongoDb,
   'hashingSecret' : cnfg.hashingSecret,
   'authTokenStripe':cnfg.testAuthTokenStripe,
   'apiKeyMailgun':cnfg.apiKeyMailgun,
@@ -41,10 +50,14 @@ environments.testing = {
 environments.production = {
   'httpsPort' : process.env.PORT,
   'envName' : 'production',
+  'storageType':process.env.NODE_STORAGE,
+  'mongoUser': process.env.mongoUser,
+  'mongoPassword': process.env.mongoPassword,
+  'mongoDb': process.env.mongoDb,
   'hashingSecret' : process.env.hashingSecret,
-  'authTokenStripe':cnfg.AuthTokenStripe,
-  'apiKeyMailgun':cnfg.apiKeyMailgun,
-  'domainNameMailgun':cnfg.domainNameMailgun,
+  'authTokenStripe':process.env.AuthTokenStripe,
+  'apiKeyMailgun':process.env.apiKeyMailgun,
+  'domainNameMailgun':process.env.domainNameMailgun,
   'templateGlobals' : {
     'appName' : 'Swifty Tasty Pizza',
     'companyName' : 'Easy, Inc.',
@@ -52,11 +65,8 @@ environments.production = {
   },
 };
 
-// Determine which environment was passed as a command-line argument
-var currentEnvironment = typeof(process.env.NODE_ENV) == 'string' ? process.env.NODE_ENV.toLowerCase() : '';
-
 // Check that the current environment is one of the environments above, if not default to staging
-var environmentToExport = typeof(environments[currentEnvironment]) == 'object' ? environments[currentEnvironment] : environments.staging;
+const environmentToExport = typeof(environments[currentEnvironment]) == 'object' ? environments[currentEnvironment] : environments.staging;
 
 // Export the module
 module.exports = environmentToExport;

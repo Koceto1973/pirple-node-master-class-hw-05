@@ -7,11 +7,9 @@ var helpers = require('./helpers');
 
 // Container for module (to be exported)
 var data = {};
-var _data = {};
 
 // Base directory of data folder
 data.baseDir = path.join(__dirname,'/.data/');
-_data.baseDir = path.join(__dirname,'/.data/');
 
 // Write data to a file
 data.create = function(dir,file,_data,callback){ // calback(false)
@@ -44,12 +42,12 @@ data.create = function(dir,file,_data,callback){ // calback(false)
 
 // Read data from a file
 data.read = function(dir,file,callback){ // callback(false,parsedData);
-  fs.readFile(data.baseDir+dir+'/'+file+'.json', 'utf8', function(err,data){
-    if(!err && data){
-      var parsedData = helpers.parseJsonToObject(data);
+  fs.readFile(data.baseDir+dir+'/'+file+'.json', 'utf8', function(err,_data){
+    if(!err && _data){
+      var parsedData = helpers.parseJsonToObject(_data);
       callback(false,parsedData);
     } else {
-      callback(err,data);
+      callback(err,_data);
     }
   });
 };
@@ -104,7 +102,7 @@ data.delete = function(dir,file,callback){
 // List all the items in a directory
 data.list = function(dir,callback){
   fs.readdir(data.baseDir+dir+'/', function(err,_data){
-    if(!err && data && data.length > 0){
+    if(!err && _data && _data.length > 0){
       var trimmedFileNames = [];
       _data.forEach(function(fileName){
         trimmedFileNames.push(fileName.replace('.json',''));
@@ -117,5 +115,4 @@ data.list = function(dir,callback){
 };
 
 // Export the module
-exports.data = data;
-exports._data = _data;
+module.exports = data;

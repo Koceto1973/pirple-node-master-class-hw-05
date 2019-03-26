@@ -1,20 +1,34 @@
 // data functions
 
-// Dependencies
+// Global Dependencies
 var fs = require('fs');
 var path = require('path');
+
+// Local Dependencies
 var helpers = require('./helpers');
+var config = require('./config.js');
+var mongo = require('./mongo.js');
 
 // Container for module (to be exported)
-var data = {};
+var data_fs = {};  // fs storage case
+var data_mongo = {}; // mongo db storage case
+
+const storageType = config.storageType;
+// Export the module corresponding to the actual storage type app runs currently
+// set the correct storage
+if (storageType == 'fs') {
+  module.exports = data_fs;
+} else {
+  module.exports = data_mongo;
+}
 
 // Base directory of data folder
-data.baseDir = path.join(__dirname,'/.data/');
+data_fs.baseDir = path.join(__dirname,'/.data/');
 
 // Write data to a file
-data.create = function(dir,file,_data,callback){ // calback(false)
+data_fs.create = function(dir,file,_data,callback){ // callback(false)
   // Open the file for writing
-  fs.open(data.baseDir+dir+'/'+file+'.json', 'wx', function(err, fileDescriptor){
+  fs.open(data_fs.baseDir+dir+'/'+file+'.json', 'wx', function(err, fileDescriptor){
     if(!err && fileDescriptor){
       // Convert data to string
       var stringData = JSON.stringify(_data);
@@ -40,9 +54,13 @@ data.create = function(dir,file,_data,callback){ // calback(false)
 
 };
 
+data_mongo.create = function(){
+  
+}
+
 // Read data from a file
-data.read = function(dir,file,callback){ // callback(false,parsedData);
-  fs.readFile(data.baseDir+dir+'/'+file+'.json', 'utf8', function(err,_data){
+data_fs.read = function(dir,file,callback){ // callback(false,parsedData);
+  fs.readFile(data_fs.baseDir+dir+'/'+file+'.json', 'utf8', function(err,_data){
     if(!err && _data){
       var parsedData = helpers.parseJsonToObject(_data);
       callback(false,parsedData);
@@ -52,11 +70,15 @@ data.read = function(dir,file,callback){ // callback(false,parsedData);
   });
 };
 
+data_mongo.read = function(){
+  
+}
+
 // Update data in a file
-data.update = function(dir,file,_data,callback){ // callback(false);
+data_fs.update = function(dir,file,_data,callback){ // callback(false);
 
   // Open the file for writing
-  fs.open(data.baseDir+dir+'/'+file+'.json', 'r+', function(err, fileDescriptor){
+  fs.open(data_fs.baseDir+dir+'/'+file+'.json', 'r+', function(err, fileDescriptor){
     if(!err && fileDescriptor){
       // Convert data to string
       var stringData = JSON.stringify(_data);
@@ -89,19 +111,27 @@ data.update = function(dir,file,_data,callback){ // callback(false);
 
 };
 
+data_mongo.update = function(){
+  
+}
+
 // Delete a file
-data.delete = function(dir,file,callback){
+data_fs.delete = function(dir,file,callback){
 
   // Unlink the file from the filesystem
-  fs.unlink(data.baseDir+dir+'/'+file+'.json', function(err){
+  fs.unlink(data_fs.baseDir+dir+'/'+file+'.json', function(err){
     callback(err);
   });
 
 };
 
+data_mongo.delete = function(){
+  
+}
+
 // List all the items in a directory
-data.list = function(dir,callback){
-  fs.readdir(data.baseDir+dir+'/', function(err,_data){
+data_fs.list = function(dir,callback){
+  fs.readdir(data_fs.baseDir+dir+'/', function(err,_data){
     if(!err && _data && _data.length > 0){
       var trimmedFileNames = [];
       _data.forEach(function(fileName){
@@ -114,5 +144,6 @@ data.list = function(dir,callback){
   });
 };
 
-// Export the module
-module.exports = data;
+data_mongo.list = function(){
+  
+}

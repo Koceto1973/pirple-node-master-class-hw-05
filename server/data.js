@@ -76,8 +76,18 @@ data_fs.read = function(dir,file,callback){ // callback(false,parsedData);
   });
 };
 
-data_mongo.read = function(){
-  
+data_mongo.read = function(collection, documentName, callback){
+  mongo.read(collection, documentName,function(err,_data){
+    if (!err) {
+      if (_data) {
+        callback(false,_data);
+      } else {
+        callback(false, {});
+      }
+    } else {
+      callback(true, err)
+    }
+  });
 }
 
 // Update data in a file

@@ -31,77 +31,88 @@ const client = new MongoClient(dbUrl, { useNewUrlParser: true });
 
 const handlers = {};
 
-handlers.create = function(collection, documentName, documentContent, callback){
-  client.connect(function(err) {
-    if(err) {
-      debuglog("Failed to connect to MongoDB server.");
-      callback("Failed to connect to MongoDB server.")
-    } else {
-      debuglog("Connected to MongoDB server.");
+// handlers.create = function(collection, documentName, documentContent, callback){
+//   client.connect(function(error1) {
+//     if(error1) {
+//       debuglog("Failed to connect to MongoDB server.");
+//       callback("Failed to connect to MongoDB server.")
+//     } else {
+//       debuglog("Connected to MongoDB server.");
   
-      // do your job with the db
-      const document = JSON.parse(JSON.stringify(documentContent));
-      document.documentName = documentName;
+//       // checking if that document already exists
+//       handlers.read(collection,documentName,function(error2,result){
+//         if (!error2 || ()) {
+//           callback('Creation of duplicate documentNames is not allowed!');
+//         } else {
+//           // no duplication
+//           const document = JSON.parse(JSON.stringify(documentContent));
+//           document.documentName = documentName;
 
-      // insert document
-      insertDocument(client.db(mongoDbName),collection,document,function(err,data){
-        // close connection finally
-        client.close(function(error) {
-          if(error) {
-            debuglog("Failed to disconnect from MongoDB server.");
-            callback("Failed to disconnect from MongoDB server.")
-          } else {
-            debuglog("Disconnected from MongoDB server.");
+//           // insert document
+//           insertDocument(client.db(mongoDbName),collection,document,function(err,data){
+//             // close connection finally
+//             client.close(function(error) {
+//               if(error) {
+//                 debuglog("Failed to disconnect from MongoDB server.");
+//                 callback("Failed to disconnect from MongoDB server.")
+//               } else {
+//                 debuglog("Disconnected from MongoDB server.");
 
-            if (err) {
-              debuglog("Result after failure:");
-              debuglog(JSON.stringify(data));
-              callback(JSON.stringify(data));
-            } else {
-              debuglog("Result after succcess:");
-              debuglog(JSON.stringify(data));
-              callback(false);
-            }
-          }
-        });
-      });
-    }
-  });
-}
+//                 if (err) {
+//                   debuglog("Result after failure:");
+//                   debuglog(JSON.stringify(data));
+//                   callback(JSON.stringify(data));
+//                 } else {
+//                   debuglog("Result after succcess:");
+//                   debuglog(JSON.stringify(data));
+//                   callback(false);
+//                 }
+//               }
+//             });
+//           });
+//         }
+//       })
+//     }
+//   });
+// }
 
 handlers.read = function(collection, documentName, callback){
-  client.connect(function(err) {
-    if(err) {
+  client.connect(function(error1) {
+    if(error1) {
       debuglog("Failed to connect to MongoDB server.");
-      callback("Failed to connect to MongoDB server.")
+      callback(true,"Failed to connect to MongoDB server.");
     } else {
       debuglog("Connected to MongoDB server.");
   
-      // do your job with the db
-      const document = { "documentName": documentName }; console.log(document);
-    
-      // find document
-      findDocuments(client.db(mongoDbName),collection,document,function(err,data){
+      // query db for the documentName
+      const document = { "documentName": documentName };
+
+      // Get the documents collection
+      const collectione = client.db(mongoDbName).collection(collection);
+      // Find some documents
+      collectione.find(document).toArray(function(error2, result) {
         // close connection finally
-        client.close(function(error) {
-          if(error) {
+        client.close(function(error3) {
+          if(error3) {
             debuglog("Failed to disconnect from MongoDB server.");
-            callback("Failed to disconnect from MongoDB server.")
+            callback(true,"Failed to disconnect from MongoDB server.");
           } else {
             debuglog("Disconnected from MongoDB server.");
 
-            if (err) {
-              debuglog("Result after failure:");
-              debuglog(JSON.stringify(data));
-              callback(true, JSON.stringify(data));
+            // process the query results
+            if (error2) {
+              debuglog("Failed to query db.");
+              callback(true,"Failed to query db.");
+            } else if (result.length === 0) {
+              debuglog("Failed to match document in db.");
+              callback(true,"Failed to match document in db.");
             } else {
-              debuglog("Result after succcess:");
-              debuglog(JSON.stringify(data));
-              callback(false, JSON.stringify(data));
+              debuglog("Success to match document in db.");
+              callback(false,JSON.stringify(result));
             }
           }
         });
-      });
+      }); 
     }
   });
 }
@@ -134,23 +145,8 @@ const insertDocument = function(db, collection, document, callback) {
   });
 }
 
-const findDocuments = function(db, collection, maskObject, callback) {
-  // Get the documents collection
-  const collectione = db.collection(collection);
-  // Find some documents
-  collectione.find(maskObject).toArray(function(err, result) {
-    if (!err) {
-      debuglog("Successfully found document in db."); console.log(result);
-      callback(false,JSON.stringify(result));
-    } else {
-      debuglog("Failed to find document in db:", err);
-      callback(true, JSON.stringify(err));
-    }
-  });
-}
-
 module.exports = handlers;
 
 
-// handlers.create('test','one',{"a":1,"b":2,"c":3},(data)=>{debuglog(data)});
-//handlers.read('test','three',(err,data)=>{ debuglog(err);  debuglog(data);})
+// handlers.create('test','two',{"a":1,"b":2,"c":3},(data)=>{console.log(data)});
+// handlers.read('test','three',(err,data)=>{ console.log(err);  console.log(data);})

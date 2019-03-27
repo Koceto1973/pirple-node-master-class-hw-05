@@ -13,4 +13,4 @@ export NODE_DEBUG=debug || SET \"NODE_DEBUG=debug\"
 # node --inspect-brk index.js # app running in debugging mode
 # node --inspect-brk test.js  # app testing in debugging mode
 
-node server/mongo.js
+node server/data.js

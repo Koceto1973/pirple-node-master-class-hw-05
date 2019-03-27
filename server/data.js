@@ -76,19 +76,8 @@ data_fs.read = function(dir,file,callback){ // callback(false,parsedData);
   });
 };
 
-data_mongo.read = function(collection, documentName, callback){
-  mongo.read(collection, documentName,function(err,_data){
-    if (!err) {
-      if (_data) {
-        callback(false,_data);
-      } else {
-        callback(false, {});
-      }
-    } else {
-      callback(true, err)
-    }
-  });
-}
+data_mongo.read = mongo.read;
+data_mongo.read('test','one',(err,data)=>{ console.log(err);  console.log(data);})
 
 // Update data in a file
 data_fs.update = function(dir,file,_data,callback){ // callback(false);

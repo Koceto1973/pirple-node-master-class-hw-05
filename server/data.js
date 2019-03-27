@@ -11,7 +11,7 @@ var mongo = require('./mongo.js');
 
 // Container for module (to be exported)
 var data_fs = {};  // fs storage case
-var data_mongo = {}; // mongo db storage case
+var data_mongo = mongo; // mongo db storage case
 
 const storageType = config.storageType;
 // Export the module corresponding to the actual storage type app runs currently
@@ -54,16 +54,6 @@ data_fs.create = function(dir,file,_data,callback){ // callback(false)
 
 };
 
-data_mongo.create = function(collection, documentName, documentContent, callback){
-  mongo.create(collection,documentName,documentContent,function(err){
-    if (!err) {
-      callback(false);
-    } else {
-      callback(err);
-    }
-  });
-}
-
 // Read data from a file
 data_fs.read = function(dir,file,callback){ // callback(false,parsedData);
   fs.readFile(data_fs.baseDir+dir+'/'+file+'.json', 'utf8', function(err,_data){
@@ -75,9 +65,6 @@ data_fs.read = function(dir,file,callback){ // callback(false,parsedData);
     }
   });
 };
-
-data_mongo.read = mongo.read;
-data_mongo.read('test','one',(err,data)=>{ console.log(err);  console.log(data);})
 
 // Update data in a file
 data_fs.update = function(dir,file,_data,callback){ // callback(false);
@@ -116,10 +103,6 @@ data_fs.update = function(dir,file,_data,callback){ // callback(false);
 
 };
 
-data_mongo.update = function(){
-  
-}
-
 // Delete a file
 data_fs.delete = function(dir,file,callback){
 
@@ -129,10 +112,6 @@ data_fs.delete = function(dir,file,callback){
   });
 
 };
-
-data_mongo.delete = function(){
-  
-}
 
 // List all the items in a directory
 data_fs.list = function(dir,callback){
@@ -148,7 +127,3 @@ data_fs.list = function(dir,callback){
     }
   });
 };
-
-data_mongo.list = function(){
-  
-}

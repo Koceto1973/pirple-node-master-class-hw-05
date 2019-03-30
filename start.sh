@@ -4,7 +4,7 @@ export NODE_STORAGE=fs || SET \"NODE_STORAGE=fs\"
 
 export NODE_DEBUG=debug || SET \"NODE_DEBUG=debug\"
 
-# node index.js  # app running
+node index.js  # app running
 # node test.js   # app testing
 
 # nodemon --exec index.js # app running in amending mode
@@ -12,5 +12,3 @@ export NODE_DEBUG=debug || SET \"NODE_DEBUG=debug\"
 
 # node --inspect-brk index.js # app running in debugging mode
 # node --inspect-brk test.js  # app testing in debugging mode
-
-node server/mongo.js

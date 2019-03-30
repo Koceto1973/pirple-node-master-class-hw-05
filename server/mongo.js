@@ -251,9 +251,9 @@ handlers.list = function(collection, callback){
 
 module.exports = handlers;
 
-// TODO handlers testing!
+///////////////////// TODO handlers testing!
 // handlers.create('test','three',{"a":1,"b":2,"c":3},(err,data)=>{ console.log(err); });
 // handlers.read('test','four',(err,data)=>{ console.log(err);  console.log(data); });
 // handlers.update('test','two',{'c':2},(err)=>{console.log(err)});
 // handlers.delete('test','three',(err)=>{console.log(err)});
-handlers.list('test',(err,data)=>{ console.log(err); console.log(data); })
+// handlers.list('test',(err,data)=>{ console.log(err); console.log(data); })

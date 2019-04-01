@@ -11,6 +11,7 @@ var os = require('os');
 var v8 = require('v8');
 
 var _data = require('./data');
+var mongo = require('./mongo');
 
 class _events extends events{};
 var e = new _events();
@@ -289,8 +290,8 @@ cli.responders.menu = function(){
 
 // Exit
 cli.responders.exit = function(){
-  process.exit(0);
-};
+  mongo.close(process.exit);
+}
 
 // Aux functions
 

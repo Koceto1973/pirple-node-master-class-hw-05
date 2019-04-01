@@ -7,7 +7,7 @@ const util = require('util');
 // Local Dependencies
 var config = require('./config.js');
 
-const debuglog = util.debuglog('debug');
+const debuglog = util.debuglog('mongo');
 
 // db connection URL
 var dbUrl ='';
@@ -28,65 +28,43 @@ if (config.envName == 'production') {
 
 // Create a new MongoClient
 const client = new MongoClient(dbUrl, { useNewUrlParser: true });
+let clientConnectionFlag = false;
+
+// Client connection
+client.connect(function(error) {
+  if(error) {
+    debuglog("Failed to connect to MongoDB server.");
+  } else {
+    debuglog("Connected to MongoDB server.");
+    clientConnectionFlag = true;
+  }
+});
 
 const handlers = {};
 
 handlers.create = function(collection, documentName, documentContentObject, callback){
-  client.connect(function(error1) {
-    if(error1) {
-      debuglog("Failed to connect to MongoDB server.");
-      callback("Failed to connect to MongoDB server.");
-    } else {
-      debuglog("Connected to MongoDB server.");
-
-      // check for duplicates before creation
-      const filter = { "documentName": documentName };
-      documentContentObject.documentName = documentName;
-      const collectione = client.db(mongoDbName).collection(collection);
-      collectione.find({"documentName":{$eq: documentName}}).toArray(function(error2, data2){
-        if (error2){ // query error
-          debuglog("Failure to query db.");
-          client.close(function(error3){
-            if (error3){
-              debuglog("Failed to disconnect from db.");
-            } else {
-              debuglog("Success to disconnect from db.");
-            }
-            callback("Failure to query db.");
-          });
-        } else { // documentName exists in db
-          if ( data2.length !== 0) {
-            debuglog("Duplicate documentNames are not allowed in db.");
-          client.close(function(error3){
-            if (error3){
-              debuglog("Failed to disconnect from db.");
-            } else {
-              debuglog("Success to disconnect from db.");
-            }
-            callback("Duplicate documentNames are not allowed in db.");
-          });
-          } else { // actual insert
-            collectione.insertOne(documentContentObject, function(error4, data4){
-              client.close(function(error5){
-                if (error5) {
-                  debuglog("Failed to disconnect from MongoDB server.");
-                  callback("Failed to disconnect from MongoDB server.");
-                } else {
-                  debuglog("Success to disconnect from MongoDB server.");
-  
-                  if (error4) {
-                    debuglog("Failed to create document in db.");
-                    callback("Failed to create document in db.");
-                  } else {
-                    debuglog("Success to create document in db.");
-                    callback(false);
-                  }
-                }
-              });
-            });
+  // check for duplicates before creation
+  documentContentObject.documentName = documentName;
+  const collectione = client.db(mongoDbName).collection(collection);
+  collectione.find({"documentName":{$eq: documentName}}).toArray(function(error1, data1){
+    if (error1){ // query error
+      debuglog("Failure to query db.");
+      callback("Failure to query db.");
+    } else { // documentName exists in db
+      if ( data1.length !== 0) {
+        debuglog("Duplicate documentNames are not allowed in db.");
+        callback("Duplicate documentNames are not allowed in db.");
+      } else { // actual insert
+        collectione.insertOne(documentContentObject, function(error2, data2){
+          if (error2) {
+            debuglog("Failed to create document in db.");
+            callback("Failed to create document in db.");
+          } else {
+            debuglog("Success to create document in db.");
+            callback(false);
           }
-        }
-      });
+        });
+      }
     }
   });
 }
@@ -249,11 +227,27 @@ handlers.list = function(collection, callback){
   });
 }
 
+// Client connection close on cli exit
+handlers.close = function(callback){
+  // Client closure
+  client.close(function(error){
+    if (error){
+      debuglog("Failed to disconnect from db.");
+      callback(1);
+    } else {
+      debuglog("Success to disconnect from db.");
+      callback(0);
+    }
+  });
+}
+
 module.exports = handlers;
 
 ///////////////////// TODO handlers testing!
-// handlers.create('test','three',{"a":1,"b":2,"c":3},(err,data)=>{ console.log(err); });
+setTimeout(()=>{
+ handlers.create('test','three',{"a":1,"b":2,"c":3},(err,data)=>{ console.log(err); });
 // handlers.read('test','four',(err,data)=>{ console.log(err);  console.log(data); });
 // handlers.update('test','two',{'c':2},(err)=>{console.log(err)});
 // handlers.delete('test','three',(err)=>{console.log(err)});
 // handlers.list('test',(err,data)=>{ console.log(err); console.log(data); })
+},1000*2);

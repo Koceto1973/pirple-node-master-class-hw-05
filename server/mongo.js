@@ -70,42 +70,23 @@ handlers.create = function(collection, documentName, documentContentObject, call
 }
 
 handlers.read = function(collection, documentName, callback){
-  client.connect(function(error1) {
-    if(error1) {
-      debuglog("Failed to connect to MongoDB server.");
-      callback(true,"Failed to connect to MongoDB server.");
+  // query db for the documentName
+  const document = { "documentName": documentName };
+
+  // Get the documents collection
+  const collectione = client.db(mongoDbName).collection(collection);
+  // Find some documents
+  collectione.find(document).toArray(function(error, result) {
+    // process the query results
+    if (error) {
+      debuglog("Failed to query db.");
+      callback(true,"Failed to query db.");
+    } else if (result.length === 0) {
+      debuglog("Failed to match document in db.");
+      callback(true,"Failed to match document in db.");
     } else {
-      debuglog("Connected to MongoDB server.");
-  
-      // query db for the documentName
-      const document = { "documentName": documentName };
-
-      // Get the documents collection
-      const collectione = client.db(mongoDbName).collection(collection);
-      // Find some documents
-      collectione.find(document).toArray(function(error2, result) {
-        // close connection finally
-        client.close(function(error3) {
-          if(error3) {
-            debuglog("Failed to disconnect from MongoDB server.");
-            callback(true,"Failed to disconnect from MongoDB server.");
-          } else {
-            debuglog("Disconnected from MongoDB server.");
-
-            // process the query results
-            if (error2) {
-              debuglog("Failed to query db.");
-              callback(true,"Failed to query db.");
-            } else if (result.length === 0) {
-              debuglog("Failed to match document in db.");
-              callback(true,"Failed to match document in db.");
-            } else {
-              debuglog("Success to match document in db.");
-              callback(false,JSON.stringify(result));
-            }
-          }
-        });
-      }); 
+      debuglog("Success to match document in db.");
+      callback(false,JSON.stringify(result));
     }
   });
 }
@@ -245,9 +226,10 @@ module.exports = handlers;
 
 ///////////////////// TODO handlers testing!
 setTimeout(()=>{
- handlers.create('test','three',{"a":1,"b":2,"c":3},(err,data)=>{ console.log(err); });
-// handlers.read('test','four',(err,data)=>{ console.log(err);  console.log(data); });
-// handlers.update('test','two',{'c':2},(err)=>{console.log(err)});
-// handlers.delete('test','three',(err)=>{console.log(err)});
-// handlers.list('test',(err,data)=>{ console.log(err); console.log(data); })
+  // handlers.create('test','three',{"a":1,"b":2,"c":3},(err,data)=>{ console.log(err); });
+  // handlers.read('test','three',(err,data)=>{ console.log(err);  console.log(data); });
+  // handlers.read('test','four',(err,data)=>{ console.log(err);  console.log(data); });
+  // handlers.update('test','two',{'c':2},(err)=>{console.log(err)});
+  // handlers.delete('test','three',(err)=>{console.log(err)});
+  // handlers.list('test',(err,data)=>{ console.log(err); console.log(data); })
 },1000*2);

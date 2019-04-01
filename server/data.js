@@ -7,16 +7,17 @@ var path = require('path');
 // Local Dependencies
 var helpers = require('./helpers');
 var config = require('./config.js');
-var mongo = require('./mongo.js');
 
 // Container for module (to be exported)
 var data_fs = {};  // fs storage case
-var data_mongo = mongo; // mongo db storage case
+var data_mongo = ''; // mongo db storage case
 
 const storageType = config.storageType;
 // Export the module corresponding to the actual storage type app runs currently
 // set the correct storage
 if (storageType == 'mongo-native') {
+
+  data_mongo = require('./mongo.js');
   module.exports = data_mongo;
 } else {
   module.exports = data_fs; // fs storage set as default storage

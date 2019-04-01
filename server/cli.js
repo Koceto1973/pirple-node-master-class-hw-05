@@ -11,6 +11,7 @@ var os = require('os');
 var v8 = require('v8');
 
 var _data = require('./data');
+var config = require('./config');
 var mongo = require('./mongo');
 
 class _events extends events{};
@@ -290,7 +291,11 @@ cli.responders.menu = function(){
 
 // Exit
 cli.responders.exit = function(){
-  mongo.close(process.exit);
+  if ( config.storageType == 'mongo-native'){
+    mongo.close(process.exit);
+  } else {
+    process.exit(0);
+  }
 }
 
 // Aux functions

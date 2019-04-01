@@ -775,20 +775,20 @@ handlers._payments.post = function(data,callback){ // callback(200,paymentId)
   // Check that user token and email are provided
   var token = typeof(data.headers.token) == 'string' ? data.headers.token : false;
   var email = typeof(data.headers.email) == 'string' ? data.headers.email.trim() : false;
-  var orderId = typeof(data.queryStringObject.id) == 'string' && data.queryStringObject.id.trim().length == 20 ? data.queryStringObject.id.trim() : false;
+  var _orderId = typeof(data.queryStringObject.id) == 'string' && data.queryStringObject.id.trim().length == 20 ? data.queryStringObject.id.trim() : false;
   var source = typeof(data.queryStringObject.source) == 'string' ? data.queryStringObject.source.trim() : false;
   var currency = typeof(data.queryStringObject.currency) == 'string' ? data.queryStringObject.currency.trim() : false;
   var description = typeof(data.queryStringObject.description) == 'string' ? data.queryStringObject.description.trim() : false;
   
-  if(token&&email&&orderId&&source&&currency&&description){
+  if(token&&email&&_orderId&&source&&currency&&description){
     // check that the token is issued to the user requesting the amend
     handlers._tokens.verifyToken(token,email,function(tokenIsValid){
       if(tokenIsValid){
         // check that the order is posted by the user requesting the payment
         _data.read('users',email,function(err,userData){
-          if(!err&&userData&&userData.orders&&(userData.orders instanceof Array)&&(userData.orders.indexOf(orderId)>-1)){
+          if(!err&&userData&&userData.orders&&(userData.orders instanceof Array)&&(userData.orders.indexOf(_orderId)>-1)){
             // check the status of the order
-            _data.read('orders',orderId,function(err,orderData){
+            _data.read('orders',_orderId,function(err,orderData){
               if(!err&&orderData){
                if(orderData.status==='accepted' || orderData.status==='updated'){
                  // process the the order payment
@@ -800,11 +800,11 @@ handlers._payments.post = function(data,callback){ // callback(200,paymentId)
                      var updaterOrder = JSON.parse(JSON.stringify(orderData));
                      updaterOrder.status = 'payed/ check mail';
                      // update the order in the storage
-                     _data.update('orders',orderId,updaterOrder,function(err){
+                     _data.update('orders',_orderId,updaterOrder,function(err){
                        if(!err){
                         // callback(200,{'payment Id':paymentData.paymentId,'payment amount in USD':amount/100})
                         // notify the client by email for the payment
-                        var notification = `By invoice ${paymentData.paymentId} you have payed successfully ${amount/100} USD for your Swifty Tasty pizzas order ${orderId}`;
+                        var notification = `By invoice ${paymentData.paymentId} you have payed successfully ${amount/100} USD for your Swifty Tasty pizzas order ${_orderId}`;
                         helpers.createMailgunNotification(email,notification,function(err,mailData){
                           if(!err&&mailData){
                             callback(200,mailData);

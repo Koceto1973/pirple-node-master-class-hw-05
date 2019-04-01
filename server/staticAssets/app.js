@@ -49,7 +49,7 @@ app.client.request = function(headers,path,method,queryStringObject,payload,call
   xhr.open(method, requestUrl, true); 
   // console.log('xhr request url', requestUrl);
   xhr.setRequestHeader("Content-type", "application/json"); // front end asking it's back end
-
+  
   // For each header sent, add it to the request
   for(var headerKey in headers){
      if(headers.hasOwnProperty(headerKey)){
@@ -352,9 +352,9 @@ app.loadOrders = function(){
                 "id"         : orderId,
                 "source"     : "tok_visa"
               }
-
+              
               // affect the checkout payment
-              app.client.request(headers,'/api/orders.payments','POST',query,undefined,function(resStatus,resPayload){
+              app.client.request(headers,'/api/orders/payments','POST',query,undefined,function(resStatus,resPayload){
                 if(resStatus !== 200){
                   // Set the contentError field with the error text
                   document.querySelector(".contentError").innerHTML = 'Sorry, an error has occured. Please try again.';

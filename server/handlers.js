@@ -779,7 +779,7 @@ handlers._payments.post = function(data,callback){ // callback(200,paymentId)
   var source = typeof(data.queryStringObject.source) == 'string' ? data.queryStringObject.source.trim() : false;
   var currency = typeof(data.queryStringObject.currency) == 'string' ? data.queryStringObject.currency.trim() : false;
   var description = typeof(data.queryStringObject.description) == 'string' ? data.queryStringObject.description.trim() : false;
-
+  
   if(token&&email&&orderId&&source&&currency&&description){
     // check that the token is issued to the user requesting the amend
     handlers._tokens.verifyToken(token,email,function(tokenIsValid){

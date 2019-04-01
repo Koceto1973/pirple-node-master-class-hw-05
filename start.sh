@@ -1,6 +1,7 @@
 export NODE_ENV=staging || SET \"NODE_ENV=staging\"
 
 export NODE_STORAGE=fs || SET \"NODE_STORAGE=fs\"
+# export NODE_STORAGE=mongo-native || SET \"NODE_STORAGE=mongo-native\"
 
 export NODE_DEBUG=debug || SET \"NODE_DEBUG=debug\"
 

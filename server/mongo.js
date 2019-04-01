@@ -131,41 +131,22 @@ handlers.delete = function(collection, documentName, callback){
 }
 
 handlers.list = function(collection, callback){
-  client.connect(function(error1) {
-    if(error1) {
-      debuglog("Failed to connect to MongoDB server.");
-      callback(true,"Failed to connect to MongoDB server.");
+  // Get the documents collection
+  const collectione = client.db(mongoDbName).collection(collection);
+  // Find some documents
+  collectione.find({},{'documentName':1}).toArray(function(error, result) {
+    // process the query results
+    if (error) {
+      debuglog("Failure to quiry db.", error);
+      callback(true, "Failure to quiry db.");
     } else {
-      debuglog("Connected to MongoDB server.");
-  
-      // Get the documents collection
-      const collectione = client.db(mongoDbName).collection(collection);
-      // Find some documents
-      collectione.find({},{'documentName':1}).toArray(function(error2, result2) {
-        // close connection finally
-        client.close(function(error3) {
-          if(error3) {
-            debuglog("Failure to disconnect from MongoDB server.", error3);
-            callback(true, "Failure to disconnect from MongoDB server.");
-          } else {
-            debuglog("Disconnected from MongoDB server.");
+      debuglog("Success to query and list collection documents in db.");
 
-            // process the query results
-            if (error2) {
-              debuglog("Failure to quiry db.", error2);
-              callback(true, "Failure to quiry db.");
-            } else {
-              debuglog("Success to query and list collection documents in db.");
-
-              let array = [];
-              if (result2.length !== 0) {
-                array = result2.map( element => element.documentName );
-              }
-              callback(false, array);
-            }
-          }
-        });
-      });
+      let array = [];
+      if (result.length !== 0) {
+        array = result.map( element => element.documentName );
+      }
+      callback(false, array);
     }
   });
 }
@@ -188,7 +169,7 @@ module.exports = handlers;
 
 ///////////////////// TODO handlers testing!
 setTimeout(()=>{
-  // handlers.create('test','three',{"a":1,"b":2,"c":3},(err,data)=>{ console.log(err); });
+  // handlers.create('test','one',{"a":1,"b":2,"c":3},(err,data)=>{ console.log(err); });
   // handlers.read('test','three',(err,data)=>{ console.log(err);  console.log(data); });
   // handlers.read('test','four',(err,data)=>{ console.log(err);  console.log(data); });
   // handlers.update('test','two',{'c':2},(err)=>{console.log(err)});

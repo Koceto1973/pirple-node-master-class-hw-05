@@ -91,41 +91,22 @@ handlers.read = function(collection, documentName, callback){
   });
 }
 
-handlers.update = function(collection, documentName, callback){
-  client.connect(function(error1) {
-    if(error1) {
-      debuglog("Failed to connect to MongoDB server.");
-      callback("Failed to connect to MongoDB server.");
+handlers.update = function(collection, documentName, documentContentObject, callback){
+  // Get the documents collection
+  const collectione = client.db(mongoDbName).collection(collection);
+  documentContentObject.documentName = documentName;
+  // Find some documents
+  collectione.findOneAndReplace({ "documentName" : { $eq : documentName } },documentContentObject,function(error, result) {
+    // process the query results
+    if (error) {
+      debuglog("Failure to quiry db.", error);
+      callback("Failure to quiry db.");
+    } else if (!result.lastErrorObject.updatedExisting) {
+      debuglog("Failure to match document.");
+      callback("Failure to match document.");
     } else {
-      debuglog("Connected to MongoDB server.");
-  
-      // Get the documents collection
-      const collectione = client.db(mongoDbName).collection(collection);
-      documentContentObject.documentName = documentName;
-      // Find some documents
-      collectione.findOneAndReplace({ "documentName" : { $eq : documentName } },documentContentObject,function(error2, result2) {
-        // close connection finally
-        client.close(function(error3) {
-          if(error3) {
-            debuglog("Failure to disconnect from MongoDB server.", error3);
-            callback("Failure to disconnect from MongoDB server.");
-          } else {
-            debuglog("Disconnected from MongoDB server.");
-
-            // process the query results
-            if (error2) {
-              debuglog("Failure to quiry db.", error2);
-              callback("Failure to quiry db.");
-            } else if (!result2.lastErrorObject.updatedExisting) {
-              debuglog("Failure to match document.");
-              callback("Failure to match document.");
-            } else {
-              debuglog("Success to match and update document in db.");
-              callback(false);
-            }
-          }
-        });
-      });
+      debuglog("Success to match and update document in db.");
+      callback(false);
     }
   });
 }
@@ -230,6 +211,7 @@ setTimeout(()=>{
   // handlers.read('test','three',(err,data)=>{ console.log(err);  console.log(data); });
   // handlers.read('test','four',(err,data)=>{ console.log(err);  console.log(data); });
   // handlers.update('test','two',{'c':2},(err)=>{console.log(err)});
+  // handlers.update('test','three',{'c':2},(err)=>{console.log(err)});
   // handlers.delete('test','three',(err)=>{console.log(err)});
   // handlers.list('test',(err,data)=>{ console.log(err); console.log(data); })
 },1000*2);

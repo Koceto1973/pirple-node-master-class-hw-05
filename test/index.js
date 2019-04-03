@@ -1,4 +1,4 @@
-// Test runner
+// Test runner0-
 
 // Override the NODE_ENV variable
 process.env.NODE_ENV = 'testing';
@@ -10,9 +10,10 @@ _app = {};
 // Holder of all tests
 _app.tests = {};
 
-// Dependencies
+// Dependencies, test are executed in this order
 _app.tests.unit = require('./unit');
-_app.tests.api = require('./api');
+_app.tests.apiFs = require('./api.fs');
+_app.tests.apiMongoNative = require('./api.mongo-native');
 
 // Count all the tests
 _app.countTests = function(){
@@ -34,44 +35,43 @@ _app.countTests = function(){
 _app.runTests = function(){
   var errors = [];
   var successes = 0;
+  var failures = 0;
   var limit = _app.countTests();
-  var counter = 0;
-  for(var key in _app.tests){
-     if(_app.tests.hasOwnProperty(key)){
-       var subTests = _app.tests[key];
-       for(var testName in subTests){
-          if(subTests.hasOwnProperty(testName)){
-            (function(){
-              var tmpTestName = testName;
-              var testValue = subTests[testName];
-              // Call the test
-              try{
-                testValue(function(){
+  for(var key in _app.tests){ 
+    if(_app.tests.hasOwnProperty(key)){
+      var subTests = _app.tests[key];
+      for(var testName in subTests){
+        if(subTests.hasOwnProperty(testName)){
+          (function(){
+            var tmpTestName = testName;
+            var testValue = subTests[testName];
+            // Call the test
+            try{
+              testValue(encodeURIComponent(key+testName), function(){ // the done() callback function
 
-                  // If it calls back without throwing, then it succeeded, so log it in green
-                  console.log('\x1b[32m%s\x1b[0m',tmpTestName);
-                  counter++;
-                  successes++;
-                  if(counter == limit){
-                    _app.produceTestReport(limit,successes,errors);
-                  }
-                });
-              } catch(e){
-                // If it throws, then it failed, so capture the error thrown and log it in red
-                errors.push({
-                  'name' : testName,
-                  'error' : e
-                });
-                console.log('\x1b[31m%s\x1b[0m',tmpTestName);
-                counter++;
-                if(counter == limit){
+                // If it calls back without throwing, then it succeeded, so log it in green
+                console.log('\x1b[32m%s\x1b[0m',tmpTestName);
+                successes++;
+                if(successes + failures == limit){
                   _app.produceTestReport(limit,successes,errors);
                 }
+              });
+            } catch(e){
+              // If it throws, then it failed, so capture the error thrown and log it in red
+              errors.push({
+                'name' : testName,
+                'error' : e
+              });
+              console.log('\x1b[31m%s\x1b[0m',tmpTestName);
+              failures++;
+              if(successes + failures == limit){
+                _app.produceTestReport(limit,successes,errors);
               }
-            })();
-          }
-       }
-     }
+            }
+          })();
+        }
+      }
+    }
   }
 };
 
@@ -99,7 +99,8 @@ _app.produceTestReport = function(limit,successes,errors){
   }
   console.log("");
   console.log("--------END TEST REPORT--------");
-  setTimeout(() => {
+  
+  setTimeout(()=>{
     console.log('app exit after testing...');
     process.exit(0);
   }, 1000*5);

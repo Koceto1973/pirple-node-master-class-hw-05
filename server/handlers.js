@@ -5,7 +5,6 @@ var _data = require('./data');
 var helpers = require('./helpers');
 var templates = require('./templateData.json');
 
-
 // Define all the handlers
 var handlers = {};
 

@@ -29,7 +29,7 @@ if (config.envName == 'production') {
 // Create a new MongoClient
 const client = new MongoClient(dbUrl, { useNewUrlParser: true });
 
-// Client connection
+// Client connection at app start
 client.connect(function(error) {
   if(error) {
     debuglog("Failed to connect to MongoDB server.");
@@ -199,7 +199,6 @@ let timer = setInterval(() => {
   }
 }, 1000*(1/10) );
 
-console.log('Do your TODO mongoDb storage testing automated!');
 // handlers.create('test','one',{"a":1,"b":2,"c":3},(err,data)=>{ console.log(err); });
 // handlers.read('test','three',(err,data)=>{ console.log(err);  console.log(data); });
 // handlers.read('test','four',(err,data)=>{ console.log(err);  console.log(data); });

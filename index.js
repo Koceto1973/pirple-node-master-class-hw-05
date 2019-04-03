@@ -8,14 +8,16 @@ var cli = require('./server/cli');
 var app = {};
 
 // Init function
-app.init = function(callback){
+app.init = function(callback){ // artificial callback argument, to accomodate done() in testing suite
 
   // Start the server
   server.init();
 
   // Start the CLI, but make sure it starts last
   setTimeout(function(){
-    cli.init();
+    if ( process.env.NODE_ENV !== 'testing') {
+      cli.init();
+    }
     callback();
   },50);
   

@@ -41,7 +41,10 @@ var failures = 0;
 
 // reccursive test runner
 _app.runSubTests = function(index){
+  // reccursion bottom
   if ( index === _app.groupTestsNamesArray.length ) return;
+
+  console.log('Testing group:', _app.groupTestsNamesArray[index]);
   
   if ( _app.groupTestsNamesArray[index] === 'apiFs') {
     handlers.redirectStorage('fs');

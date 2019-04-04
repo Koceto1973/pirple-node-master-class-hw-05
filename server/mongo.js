@@ -166,6 +166,20 @@ handlers.close = function(callback){
   });
 }
 
+// Additional handlers for db set up
+handlers.createIndexedCollection = function(collection, callback){
+  const collectione = client.db(mongoDbName).collection(collection);
+  collectione.createIndex({'documentName': 1}, function(error, data){
+    if (error) {
+      debuglog("Failed to index ", collection, " in db.");
+      callback("Failed to index " + collection + " in db.");
+    } else {
+      debuglog("Success to index ", collection, " in db.");
+      callback(false);
+    }
+  });
+}
+
 module.exports = handlers;
 
 // waiting for the client to connect before loading the menu in the db
@@ -193,6 +207,10 @@ let timer = setInterval(() => {
     },()=>{
       debuglog('Menu is loaded in the db.');
     })
+    // create and index the basic collections
+    handlers.createIndexedCollection('users',(error)=>{debuglog(error)});
+    handlers.createIndexedCollection('tokens',(error)=>{debuglog(error)});
+    handlers.createIndexedCollection('orders',(error)=>{debuglog(error)});
 
     // stop timer
     clearInterval(timer);

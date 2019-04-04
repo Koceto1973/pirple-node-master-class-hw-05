@@ -1,9 +1,13 @@
 // Request Handlers
 
 // Dependencies
+var config = require('./config');
 var _data = require('./data');
 var helpers = require('./helpers');
 var templates = require('./templateData.json');
+const util = require('util');
+
+const debuglog = util.debuglog('handlers');
 
 // Define all the handlers
 var handlers = {};
@@ -841,3 +845,13 @@ handlers._payments.post = function(data,callback){ // callback(200,paymentId)
 
 // Export the handlers
 module.exports = handlers;
+
+// require('./data') again after process.env.NODE_STORAGE change, resulting in storage switch for testing
+handlers.redirectStorage = (value) => {
+  process.env.NODE_STORAGE = value;
+  debuglog( 'NODE_STORAGE reset:', value );
+
+  // re-require('./data')
+  delete require.cache[require.resolve('./data')];
+  _data =  require('./data');
+};

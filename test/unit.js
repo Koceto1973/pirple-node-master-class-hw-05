@@ -3,9 +3,13 @@
 // Dependencies
 var assert = require('assert');
 var helpers = require('./../server/helpers');
+var testers = require('./testers');
 
 // Holder for Tests
 var unit = {};
+
+// also main app starter
+unit['app.init should not throw'] = testers.app;
 
 unit['helpers.parseJsonToObject should not throw'] = function(name, done){
   ['string','{"name":"John", "age":31, "city":"New York"}','{"name":"John", "age":31,, ...'].

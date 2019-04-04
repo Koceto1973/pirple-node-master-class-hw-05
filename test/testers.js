@@ -2,16 +2,19 @@
 
 // Dependencies
 var assert = require('assert');
-var app = require('../index'); // required without app.init() invokation
 var https = require('https');
+
 const config = require('../server/config');
+var app = require('../index'); // required without app.init() invokation
 
 const helpers = {};
 
-// use requireUncached('./myModule') instead of require('./myModule')
-helpers.requireUncached = function(module){
-  delete require.cache[require.resolve(module)];
-  return require(module);
+helpers.app = function(_name,done){
+  assert.doesNotThrow(function(){
+    app.init(function(){
+      done();
+    });
+  },TypeError);
 }
 
 helpers.createHttpsRequest = function(method,path,headers,queries,body,callback){
@@ -61,14 +64,6 @@ helpers.createHttpsRequest = function(method,path,headers,queries,body,callback)
   if(JSON.stringify(body)!=='{}') { req.write(JSON.stringify(body)); };
   req.end();
 };
-
-helpers.app = function(_name,done){
-  assert.doesNotThrow(function(){
-    app.init(function(){
-      done();
-    });
-  },TypeError);
-}
 
 helpers.ping = function(_name,  done){
   helpers.createHttpsRequest('GET','/ping',{},{},{},(err,payloadData)=>{

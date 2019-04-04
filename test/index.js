@@ -1,7 +1,7 @@
-// Test runner0-
+// Application Testing entry point
 
-// Override the NODE_ENV variable
-process.env.NODE_ENV = 'testing';
+var handlers = require('./../server/handlers');
+
 process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0; // ignore https error on self signed certificate
 
 // Application logic for the test runner
@@ -10,16 +10,19 @@ _app = {};
 // Holder of all tests
 _app.tests = {};
 
-// Dependencies, test are executed in this order
+// Test Dependencies, test are executed in this order
 _app.tests.unit = require('./unit');
 _app.tests.apiFs = require('./api.fs');
 _app.tests.apiMongoNative = require('./api.mongo-native');
 
-// Count all the tests
+_app.groupTestsNamesArray = []; // [ unit, apiFS, apiMongoNative, etc. ]
+
+// Count all the tests and populate the above array
 _app.countTests = function(){
   var counter = 0;
   for(var key in _app.tests){
      if(_app.tests.hasOwnProperty(key)){
+      _app.groupTestsNamesArray.push(key);
        var subTests = _app.tests[key];
        for(var testName in subTests){
           if(subTests.hasOwnProperty(testName)){
@@ -31,49 +34,62 @@ _app.countTests = function(){
   return counter;
 };
 
-// Run all the tests, collecting the errors and successes
-_app.runTests = function(){
-  var errors = [];
-  var successes = 0;
-  var failures = 0;
-  var limit = _app.countTests();
-  for(var key in _app.tests){ 
-    if(_app.tests.hasOwnProperty(key)){
-      var subTests = _app.tests[key];
-      for(var testName in subTests){
-        if(subTests.hasOwnProperty(testName)){
-          (function(){
-            var tmpTestName = testName;
-            var testValue = subTests[testName];
-            // Call the test
-            try{
-              testValue(encodeURIComponent(key+testName), function(){ // the done() callback function
+var limit = _app.countTests();
+var errors = [];
+var successes = 0;
+var failures = 0;
 
-                // If it calls back without throwing, then it succeeded, so log it in green
-                console.log('\x1b[32m%s\x1b[0m',tmpTestName);
-                successes++;
-                if(successes + failures == limit){
-                  _app.produceTestReport(limit,successes,errors);
-                }
-              });
-            } catch(e){
-              // If it throws, then it failed, so capture the error thrown and log it in red
-              errors.push({
-                'name' : testName,
-                'error' : e
-              });
-              console.log('\x1b[31m%s\x1b[0m',tmpTestName);
-              failures++;
+// reccursive test runner
+_app.runSubTests = function(index){
+  if ( index === _app.groupTestsNamesArray.length ) return;
+  
+  if ( _app.groupTestsNamesArray[index] === 'apiFs') {
+    handlers.redirectStorage('fs');
+  } else if ( _app.groupTestsNamesArray[index] === 'apiMongoNative') {
+    handlers.redirectStorage('mongo-native');
+  }
+
+  // some tiny delay to catch up with storage switch before running the tests
+  setTimeout(()=>{
+    var subTests = _app.tests[_app.groupTestsNamesArray[index]];
+    for(var testName in subTests){
+      if(subTests.hasOwnProperty(testName)){
+        (function(){
+          var tmpTestName = testName;
+          var testValue = subTests[testName];
+          // Call the test
+          try{
+            testValue(encodeURIComponent(_app.groupTestsNamesArray[index]+testName), function(){ // the done() callback function
+
+              // If it calls back without throwing, then it succeeded, so log it in green
+              console.log('\x1b[32m%s\x1b[0m',tmpTestName);
+              successes++;
               if(successes + failures == limit){
                 _app.produceTestReport(limit,successes,errors);
               }
+            });
+          } catch(e){
+            // If it throws, then it failed, so capture the error thrown and log it in red
+            errors.push({
+              'name' : testName,
+              'error' : e
+            });
+            console.log('\x1b[31m%s\x1b[0m',tmpTestName);
+            failures++;
+            if(successes + failures == limit){
+              _app.produceTestReport(limit,successes,errors);
             }
-          })();
-        }
+          }
+        })();
       }
     }
-  }
-};
+  }, 1000*( _app.groupTestsNamesArray[index] !== 'unit' ? 0.1 : 0 ));
+
+  // some delay to complete all the tests in each storage case
+  setTimeout(()=>{
+    _app.runSubTests(index+1);
+  },1000*( _app.groupTestsNamesArray[index] !== 'unit' ? 3.5 : 0 ));
+}
 
 // Product a test outcome report
 _app.produceTestReport = function(limit,successes,errors){
@@ -103,9 +119,9 @@ _app.produceTestReport = function(limit,successes,errors){
   setTimeout(()=>{
     console.log('app exit after testing...');
     process.exit(0);
-  }, 1000*5);
+  }, 1000*8);
 
 };
 
 // Run the tests
-_app.runTests();
+_app.runSubTests(0);

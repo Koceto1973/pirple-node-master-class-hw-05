@@ -158,13 +158,21 @@ server.processHandlerResponse = function(res,method,trimmedPath,statusCode,paylo
   }
 }
 
-// Init script
+// Server init script
 server.init = function(){
   // Start the HTTPS server
   server.httpsServer.listen(config.httpsPort,function(){
-    console.log('\x1b[35m%s\x1b[0m','The HTTPS server is running on port '+config.httpsPort);
+    console.log('\x1b[34m%s\x1b[0m','The HTTPS server is listening on port '+config.httpsPort);
   });
 };
+
+// Server closure script
+server.close = function(){
+  // Stop the HTTPS server
+  server.httpsServer.close(()=>{
+    console.log('\x1b[35m%s\x1b[0m','The HTTPS server stopped listening on port '+config.httpsPort);
+  });
+}
 
 // Export the module
 module.exports = server;

@@ -2,12 +2,13 @@
 
 // core dependencies
 var https = require('https');
+var http = require('http');
 var url = require('url');
 var StringDecoder = require('string_decoder').StringDecoder;
 var fs = require('fs');
 var path = require('path');
 var util = require('util');
-var debug = util.debuglog('server');
+var debuglog = util.debuglog('server');
 
 // local dependencies
 var config = require('./config');
@@ -17,12 +18,17 @@ var helpers = require('./helpers');
 // Instantiate the server module object
 var server = {};
 
-// Instantiate the HTTPS server
+// Instantiate the HTTP or HTTPS server
 server.httpsServerOptions = {
-  'key': fs.readFileSync(path.join(__dirname,'/../server/https.options/key.pem')),
-  'cert': fs.readFileSync(path.join(__dirname,'/../server/https.options/cert.pem'))
+  'key' : config.envName !== 'production' ? fs.readFileSync(path.join(__dirname,'/../server/https.options/key.pem'))  : '',
+  'cert': config.envName !== 'production' ? fs.readFileSync(path.join(__dirname,'/../server/https.options/cert.pem')) : ''
 };
-server.httpsServer = https.createServer(server.httpsServerOptions,function(req,res){
+
+server.httpsServer = https.createServer(server.httpsServerOptions,server.requestReader);
+server.httpServer  =  http.createServer(server.requestReader);
+
+// Read the request
+server.requestReader = function(req,res){
   // Parse the url
   var parsedUrl = url.parse(req.url, true);
 
@@ -95,11 +101,11 @@ server.httpsServer = https.createServer(server.httpsServerOptions,function(req,r
           server.processHandlerResponse(res,method,trimmedPath,statusCode,payload,contentType);
         });
       }catch(e){
-        debug(e);
+        debuglog(e);
         server.processHandlerResponse(res,method,trimmedPath,500,{'Error' : 'An unknown error has occured'},'json');
       }
   });
-});
+}
 
 // Process the response from the handler
 server.processHandlerResponse = function(res,method,trimmedPath,statusCode,payload,contentType){
@@ -152,26 +158,40 @@ server.processHandlerResponse = function(res,method,trimmedPath,statusCode,paylo
   
   // If the response is 200, print green, otherwise print red
   if(statusCode == 200){
-    debug('\x1b[32m%s\x1b[0m',method.toUpperCase()+' /'+trimmedPath+' '+statusCode);
+    debuglog('\x1b[32m%s\x1b[0m',method.toUpperCase()+' /'+trimmedPath+' '+statusCode);
   } else {
-    debug('\x1b[31m%s\x1b[0m',method.toUpperCase()+' /'+trimmedPath+' '+statusCode);
+    debuglog('\x1b[31m%s\x1b[0m',method.toUpperCase()+' /'+trimmedPath+' '+statusCode);
   }
 }
 
 // Server init script
 server.init = function(){
-  // Start the HTTPS server
-  server.httpsServer.listen(config.httpsPort,function(){
-    console.log('\x1b[34m%s\x1b[0m','The HTTPS server is listening on port '+config.httpsPort);
-  });
+  if (config.envName !== 'production' ) {
+    // Start the HTTPS server
+    server.httpsServer.listen(config.httpsPort,function(){
+      console.log('\x1b[34m%s\x1b[0m','The HTTPS server is listening on port '+config.httpsPort);
+    });
+  } else {
+    // Start the HTTP server
+    server.httpServer.listen(config.httpsPort,function(){
+      console.log('\x1b[34m%s\x1b[0m','The HTTP server is listening on port '+config.httpsPort);
+    });
+  }
 };
 
 // Server closure script
 server.close = function(){
-  // Stop the HTTPS server
-  server.httpsServer.close(()=>{
-    console.log('\x1b[35m%s\x1b[0m','The HTTPS server stopped listening on port '+config.httpsPort);
-  });
+  if (config.envName !== 'production' ) {
+    // Stop the HTTPS server
+    server.httpsServer.close(()=>{
+      console.log('\x1b[35m%s\x1b[0m','The HTTPS server stopped listening on port '+config.httpsPort);
+    });
+  } else {
+    // Stop the HTTP server
+    server.httpServer.close(()=>{
+      console.log('\x1b[35m%s\x1b[0m','The HTTP server stopped listening on port '+config.httpsPort);
+    });
+  }
 }
 
 // Export the module

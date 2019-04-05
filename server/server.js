@@ -18,15 +18,6 @@ var helpers = require('./helpers');
 // Instantiate the server module object
 var server = {};
 
-// Instantiate the HTTP or HTTPS server
-server.httpsServerOptions = {
-  'key' : config.envName !== 'production' ? fs.readFileSync(path.join(__dirname,'/../server/https.options/key.pem'))  : '',
-  'cert': config.envName !== 'production' ? fs.readFileSync(path.join(__dirname,'/../server/https.options/cert.pem')) : ''
-};
-
-server.httpsServer = https.createServer(server.httpsServerOptions,server.requestReader);
-server.httpServer  =  http.createServer(server.requestReader);
-
 // Read the request
 server.requestReader = function(req,res){
   // Parse the url
@@ -162,6 +153,18 @@ server.processHandlerResponse = function(res,method,trimmedPath,statusCode,paylo
   } else {
     debuglog('\x1b[31m%s\x1b[0m',method.toUpperCase()+' /'+trimmedPath+' '+statusCode);
   }
+}
+
+// Instantiate the HTTP or HTTPS server
+server.httpsServerOptions = {
+  'key' : config.envName !== 'production' ? fs.readFileSync(path.join(__dirname,'/../server/https.options/key.pem'))  : '',
+  'cert': config.envName !== 'production' ? fs.readFileSync(path.join(__dirname,'/../server/https.options/cert.pem')) : ''
+};
+
+if (config.envName !== 'production') {
+  server.httpsServer = https.createServer(server.httpsServerOptions,server.requestReader);
+} else {
+  server.httpServer  =  http.createServer(server.requestReader);
 }
 
 // Server init script

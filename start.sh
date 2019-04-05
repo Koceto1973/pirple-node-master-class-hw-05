@@ -5,10 +5,10 @@
 # export NODE_STORAGE=mongo-native || SET \"NODE_STORAGE=mongo-native\"
 
 # export NODE_DEBUG=debug || SET \"NODE_DEBUG=debug\"         # use for debug logging in couple of files
-# export NODE_DEBUG=mongo || SET \"NODE_DEBUG=mongo\"   # use for debug logging in single file
+# export NODE_DEBUG=mongo || SET \"NODE_DEBUG=mongo\"           # use for debug logging in single file
 
-# node index.js        # app running
- node test/index.js   # app testing
+# node index.js          # app running
+# node test/index.js   # app testing
 
 # nodemon --exec index.js       # app running in amending mode
 # nodemon --exec test/index.js  # app testing in amending mode

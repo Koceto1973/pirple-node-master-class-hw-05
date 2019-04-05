@@ -14,15 +14,15 @@ var dbUrl ='';
 
 const user = encodeURIComponent(config.mongoUser);
 const password = encodeURIComponent(config.mongoPassword);
-const mongoDbServer = encodeURIComponent(config.mongoDbServer);
+const mongoDbServer = config.mongoDbServer;
 const mongoDbName = encodeURIComponent(config.mongoDbName);
 const authMechanism = 'DEFAULT';
 
 // dbUrl resolve
 if (config.envName == 'production') {
-  dbUrl = `mongodb://${user}:${password}@${mongoDb}/?authMechanism=${authMechanism}`;
+  dbUrl = `mongodb://${user}:${password}@${mongoDbServer}/${mongoDbName}?authMechanism=${authMechanism}`;
 } else {
-  // dbUrl = `mongodb://${user}:${password}@${mongoDbServer}?authMechanism=${authMechanism}`; // option for running local server with remote db
+  // dbUrl = `mongodb://${user}:${password}@${mongoDbServer}/${mongoDbName}?authMechanism=${authMechanism}`; // option for running local server with remote db
   dbUrl = "mongodb://127.0.0.1:27017";
 }
 
@@ -182,7 +182,7 @@ handlers.createIndexedCollection = function(collection, callback){
 
 module.exports = handlers;
 
-// waiting for the client to connect before loading the menu in the db
+// waiting for the client to connect before loading the menu in the db an index basic collections
 let timer = setInterval(() => {
   if ( client.isConnected() ){
     // load the menu

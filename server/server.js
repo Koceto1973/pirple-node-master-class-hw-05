@@ -1,7 +1,6 @@
 // Server-related tasks
 
 // core dependencies
-var https = require('https');
 var http = require('http');
 var url = require('url');
 var StringDecoder = require('string_decoder').StringDecoder;
@@ -156,45 +155,22 @@ server.processHandlerResponse = function(res,method,trimmedPath,statusCode,paylo
   }
 }
 
-if (config.envName !== 'production') {
-  // Instantiate the HTTP or HTTPS server
-  server.httpsServerOptions = {
-    'key' : fs.readFileSync(path.join(__dirname,'/../server/https.options/key.pem')),
-    'cert': fs.readFileSync(path.join(__dirname,'/../server/https.options/cert.pem'))
-  };
-  server.httpsServer = https.createServer(server.httpsServerOptions,server.requestReader);
-} else {
-  server.httpServer  =  http.createServer(server.requestReader);
-}
+server.httpServer  =  http.createServer(server.requestReader);
 
 // Server init script
 server.init = function(){
-  if (config.envName !== 'production' ) {
-    // Start the HTTPS server
-    server.httpsServer.listen(config.httpsPort,function(){
-      console.log('\x1b[34m%s\x1b[0m','The HTTPS server is listening on port '+config.httpsPort);
-    });
-  } else {
-    // Start the HTTP server
-    server.httpServer.listen(config.httpsPort,function(){
-      console.log('\x1b[34m%s\x1b[0m','The HTTP server is listening on port '+config.httpsPort);
-    });
-  }
+  // Start the HTTP server
+  server.httpServer.listen(config.httpsPort,function(){
+    console.log('\x1b[34m%s\x1b[0m','The HTTP server is listening on port '+config.httpsPort);
+  });
 };
 
 // Server closure script
 server.close = function(){
-  if (config.envName !== 'production' ) {
-    // Stop the HTTPS server
-    server.httpsServer.close(()=>{
-      console.log('\x1b[35m%s\x1b[0m','The HTTPS server stopped listening on port '+config.httpsPort);
-    });
-  } else {
-    // Stop the HTTP server
-    server.httpServer.close(()=>{
-      console.log('\x1b[35m%s\x1b[0m','The HTTP server stopped listening on port '+config.httpsPort);
-    });
-  }
+  // Stop the HTTP server
+  server.httpServer.close(()=>{
+    console.log('\x1b[35m%s\x1b[0m','The HTTP server stopped listening on port '+config.httpsPort);
+  });
 }
 
 // Export the module

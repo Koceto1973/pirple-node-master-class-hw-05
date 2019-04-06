@@ -19,7 +19,7 @@ var helpers = require('./helpers');
 var server = {};
 
 // Read the request
-server.requestReader = function(req,res){
+server.requestReader = function(req,res){ debuglog('Server requested.');
   // Parse the url
   var parsedUrl = url.parse(req.url, true);
 
@@ -88,10 +88,10 @@ server.requestReader = function(req,res){
       
       // Route the request to the handler specified in the router
       try{
-        chosenHandler(data,function(statusCode,payload,contentType){
+        chosenHandler(data,function(statusCode,payload,contentType){ debuglog('Request handler returned.');
           server.processHandlerResponse(res,method,trimmedPath,statusCode,payload,contentType);
         });
-      }catch(e){
+      }catch(e){ debuglog('Request handler failed.');
         debuglog(e);
         server.processHandlerResponse(res,method,trimmedPath,500,{'Error' : 'An unknown error has occured'},'json');
       }
@@ -146,6 +146,7 @@ server.processHandlerResponse = function(res,method,trimmedPath,statusCode,paylo
   // Return the response
   res.writeHead(statusCode);
   res.end(payloadString);
+  debuglog('Server responded.');
   
   // If the response is 200, print green, otherwise print red
   if(statusCode == 200){
@@ -155,13 +156,12 @@ server.processHandlerResponse = function(res,method,trimmedPath,statusCode,paylo
   }
 }
 
-// Instantiate the HTTP or HTTPS server
-server.httpsServerOptions = {
-  'key' : config.envName !== 'production' ? fs.readFileSync(path.join(__dirname,'/../server/https.options/key.pem'))  : '',
-  'cert': config.envName !== 'production' ? fs.readFileSync(path.join(__dirname,'/../server/https.options/cert.pem')) : ''
-};
-
 if (config.envName !== 'production') {
+  // Instantiate the HTTP or HTTPS server
+  server.httpsServerOptions = {
+    'key' : fs.readFileSync(path.join(__dirname,'/../server/https.options/key.pem')),
+    'cert': fs.readFileSync(path.join(__dirname,'/../server/https.options/cert.pem'))
+  };
   server.httpsServer = https.createServer(server.httpsServerOptions,server.requestReader);
 } else {
   server.httpServer  =  http.createServer(server.requestReader);

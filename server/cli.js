@@ -10,8 +10,8 @@ var events = require('events');
 var os = require('os');
 var v8 = require('v8');
 
-var _data = require('./data');
 var config = require('./config');
+var _data = require('./data');
 var mongo = require('./mongo');
 
 class _events extends events{};

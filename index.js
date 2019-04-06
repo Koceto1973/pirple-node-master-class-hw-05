@@ -15,7 +15,7 @@ app.init = function(callback){ // artificial callback argument, to accomodate do
 
   // Start the CLI, but make sure it starts last
   setTimeout(function(){
-    if ( process.env.NODE_ENV !== 'testing') {
+    if ( process.env.NODE_ENV === 'staging') {
       cli.init();
     }
     callback();

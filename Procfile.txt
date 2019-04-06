@@ -1,3 +1,0 @@
-export NODE_DEBUG=server || SET \"NODE_DEBUG=server\"
-
-web: node index.js

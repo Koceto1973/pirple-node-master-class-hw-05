@@ -1,4 +1,7 @@
 // CLI here
+// runs separately in Heroku inside off-one dyno in bash:
+// herok run bash
+// bash cli.sh
 
 // Dependencies
 var path = require('path');

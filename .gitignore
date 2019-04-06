@@ -4,4 +4,4 @@ server/https.options/
 
 server/config.json
 
-start.1.sh/
+startLocal.sh/

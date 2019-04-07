@@ -88,7 +88,7 @@ server.requestReader = function(req,res){ debuglog('Server requested.');
       
       // Route the request to the handler specified in the router
       try{
-        if ( helpers.getProtocol(req) = 'http' ) {
+        if ( helpers.getProtocol(req) === 'http' ) {
           //redirection
           debuglog('Http request redirected to https root request.');
           // write the response

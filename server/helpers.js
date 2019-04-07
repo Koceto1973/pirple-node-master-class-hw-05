@@ -21,6 +21,13 @@ helpers.parseJsonToObject = function(str){
   }
 };
 
+helpers.getProtocol = function(req){
+  var proto = req.connection.encrypted ? 'https' : 'http';
+  // trust the proxy :)
+  proto = req.headers['x-forwarded-proto'] || proto;
+  return proto.split(/\s*,\s*/)[0];
+}
+
 // Create a SHA256 hash
 helpers.hash = function(str){
   if(typeof(str) == 'string' && str.length > 0){

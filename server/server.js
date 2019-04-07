@@ -88,9 +88,18 @@ server.requestReader = function(req,res){ debuglog('Server requested.');
       
       // Route the request to the handler specified in the router
       try{
-        chosenHandler(data,function(statusCode,payload,contentType){ debuglog('Request handler returned.');
-          server.processHandlerResponse(res,method,trimmedPath,statusCode,payload,contentType);
-        });
+        if ( helpers.getProtocol(req) = 'http' ) {
+          //redirection
+          debuglog('Http request redirected to https root request.');
+          // write the response
+          res.setHeader('Location', 'https://blueberry-sundae-72578.herokuapp.com/');
+          res.writeHead(308);
+          res.end();
+        } else {
+          chosenHandler(data,function(statusCode,payload,contentType){ debuglog('Request handler returned.');
+            server.processHandlerResponse(res,method,trimmedPath,statusCode,payload,contentType);
+          });
+        }
       }catch(e){ debuglog('Request handler failed.');
         debuglog(e);
         server.processHandlerResponse(res,method,trimmedPath,500,{'Error' : 'An unknown error has occured'},'json');

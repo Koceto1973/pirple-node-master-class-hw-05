@@ -21,8 +21,8 @@
     "debug-testing-fs": "nodemon --inspect-brk npm run testing-fs",
     "debug-testing-mongo-native": "nodemon --inspect-brk npm run testing-mongo-native"
   },
-  "engines":{
-    "node":"10.14.2"
+  "engines": {
+    "node": "10.14.2"
   },
   "repository": {
     "type": "git",
@@ -36,7 +36,6 @@
   "homepage": "https://github.com/Koceto1973/pirple-node-master-class-hw-05#readme",
   "devDependencies": {},
   "dependencies": {
-    "mongodb": "^3.2.2",
-    "mongoose": "^5.4.19"
+    "mongodb": "^3.2.2"
   }
 }

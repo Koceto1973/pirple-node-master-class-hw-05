@@ -36,6 +36,7 @@
   "homepage": "https://github.com/Koceto1973/pirple-node-master-class-hw-05#readme",
   "devDependencies": {},
   "dependencies": {
-    "mongodb": "^3.2.2"
+    "mongodb": "~3.2.2",
+    "mysql": "~2.16.0"
   }
 }

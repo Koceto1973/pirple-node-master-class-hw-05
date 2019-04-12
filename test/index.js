@@ -14,6 +14,7 @@ _app.tests = {};
 _app.tests.unit = require('./unit');
 _app.tests.apiFs = require('./api.fs');
 _app.tests.apiMongoNative = require('./api.mongo-native');
+_app.tests.apiMySQL = require('./api.mysql');
 
 _app.groupTestsNamesArray = []; // [ unit, apiFS, apiMongoNative, etc. ]
 
@@ -50,6 +51,8 @@ _app.runSubTests = function(index){
     handlers.redirectStorage('fs');
   } else if ( _app.groupTestsNamesArray[index] === 'apiMongoNative') {
     handlers.redirectStorage('mongo-native');
+  } else if ( _app.groupTestsNamesArray[index] === 'apiMySQL') {
+    handlers.redirectStorage('mysql');
   }
 
   // some tiny delay to catch up with storage switch before running the tests
@@ -122,7 +125,7 @@ _app.produceTestReport = function(limit,successes,errors){
   setTimeout(()=>{
     console.log('app exit after testing...');
     process.exit(0);
-  }, 1000*10);
+  }, 1000*15);
 
 };
 

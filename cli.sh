@@ -23,4 +23,4 @@ node ./index.js          # app running
 
 ############################################################################
 # execute on each amend before Heroku upload
-# dos2unix ./start.sh
+# dos2unix ./cli.sh

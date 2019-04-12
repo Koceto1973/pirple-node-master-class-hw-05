@@ -1,220 +1,255 @@
 // MySQL specific interface
 
 // Global Dependencies
-const {MongoClient, ObjectId} = require('mongodb');
+const mysql = require('mysql');
 const util = require('util');
 
 // Local Dependencies
 var config = require('./config.js');
 
-const debuglog = util.debuglog('mongo');
+const debuglog = util.debuglog('mysql');
 
 // db connection URL
 var dbUrl ='';
 
-const user = encodeURIComponent(config.mongoUser);
-const password = encodeURIComponent(config.mongoPassword);
-const mongoDbServer = config.mongoDbServer;
-const mongoDbName = encodeURIComponent(config.mongoDbName);
-const authMechanism = 'DEFAULT';
+const user = encodeURIComponent(config.mysqlUser);
+const password = encodeURIComponent(config.mysqlPassword);
+const mysqlDbServer = config.mysqlDbServer;
+const mysqlDbName = encodeURIComponent(config.mysqlDbName);
+
+let connectionOptions = '';
 
 // dbUrl resolve
 if (config.envName == 'production') {
-  dbUrl = `mongodb://${user}:${password}@${mongoDbServer}/${mongoDbName}?authMechanism=${authMechanism}`;
+  connectionOptions = {
+    host: mysqlDbServer,
+    user: user,
+    password: password,
+    database: mysqlDbName
+  }
 } else {
-  // dbUrl = `mongodb://${user}:${password}@${mongoDbServer}/${mongoDbName}?authMechanism=${authMechanism}`; // option for running local server with remote db
-  dbUrl = "mongodb://127.0.0.1:27017";
+  // connectionOptions = { // option for running local server with remote db
+  //   host: mysqlDbServer,
+  //   user: user,
+  //   password: password,
+  //   database: mysqlDbName
+  // }
+  connectionOptions = {
+    host: "127.0.0.1",
+    user: 'root',
+    password: "furelise0442Oracle_TeamK",
+    database: undefined
+  }
 }
 
-// Create a new MongoClient
-const client = new MongoClient(dbUrl, { useNewUrlParser: true });
+// hook to db server
+const db = (connectionOptions, dbName = undefined) => {
+  if (dbName){
+    connectionOptions.database = dbName;
+  }
+  debuglog('*** connected to db server');
+  return mysql.createConnection(connectionOptions);
+}
 
-// Client connection at app start
-client.connect(function(error) {
-  if(error) {
-    debuglog("Failed to connect to MongoDB server.");
-  } else {
-    debuglog("Connected to MongoDB server.");
+// explicit db connection of the db server hook
+const dbConnect = (hook) => hook.connect(function(err) {
+  try {
+    if (err) throw err;
+    // connection established
+    debuglog('*** db connected');
+  } catch (error) {
+    debuglog('*** db error on connection:', error.sqlMessage);
+  }
+});
+
+// closing db connection of the db server hook
+const dbClose = (hook) => hook.end((err)=>{
+  try {
+    if (err) throw err;
+    // connection established
+    debuglog('*** db disconnected');
+  } catch (error) {
+    debuglog('*** db error on disconnection:', error.sqlMessage);
   }
 });
 
 const handlers = {};
 
 handlers.create = function(collection, documentName, documentContentObject, callback){
-  // check for duplicates before creation
-  documentContentObject.documentName = documentName;
-  const collectione = client.db(mongoDbName).collection(collection);
-  collectione.find({"documentName":{$eq: documentName}}).toArray(function(error1, data1){
-    if (error1){ // query error
-      debuglog("Failure to query before document create in ", collection, " in db.");
-      callback("Failure to query before document create in " + collection + " in db.");
-    } else { // documentName exists in db
-      if ( data1.length !== 0) {
-        debuglog("Duplicate documentNames are not allowed in ", collection, " in db.");
-        callback("Duplicate documentNames are not allowed in " + collection + " in db.");
-      } else { // actual insert
-        collectione.insertOne(documentContentObject, function(error2, data2){
-          if (error2) {
-            debuglog("Failed to create document in ", collection, " in db.");
-            callback("Failed to create document in " + collection + " in db.");
-          } else {
-            debuglog("Success to create document in ", collection, " in db.");
-            callback(false);
-          }
-        });
-      }
-    }
-  });
+  // // check for duplicates before creation
+  // documentContentObject.documentName = documentName;
+  // const collectione = client.db(mongoDbName).collection(collection);
+  // collectione.find({"documentName":{$eq: documentName}}).toArray(function(error1, data1){
+  //   if (error1){ // query error
+  //     debuglog("Failure to query before document create in ", collection, " in db.");
+  //     callback("Failure to query before document create in " + collection + " in db.");
+  //   } else { // documentName exists in db
+  //     if ( data1.length !== 0) {
+  //       debuglog("Duplicate documentNames are not allowed in ", collection, " in db.");
+  //       callback("Duplicate documentNames are not allowed in " + collection + " in db.");
+  //     } else { // actual insert
+  //       collectione.insertOne(documentContentObject, function(error2, data2){
+  //         if (error2) {
+  //           debuglog("Failed to create document in ", collection, " in db.");
+  //           callback("Failed to create document in " + collection + " in db.");
+  //         } else {
+  //           debuglog("Success to create document in ", collection, " in db.");
+  //           callback(false);
+  //         }
+  //       });
+  //     }
+  //   }
+  // });
 }
 
 handlers.read = function(collection, documentName, callback){
-  // Get the documents collection
-  const collectione = client.db(mongoDbName).collection(collection);
-  // Find some documents
-  collectione.find({ "documentName": documentName }).toArray(function(error, result) {
-    // process the query results
-    if (error) {
-      debuglog("Failed to query for reading in ", collection, " in db.");
-      callback(true,error);
-    } else if (result.length === 0) {
-      debuglog("Failed to read document in ", collection, " in db.");
-      callback(true,"Failed to read document in " + collection + " in db.");
-    } else {
-      debuglog("Success to read document in ", collection, " in db.");
+  // // Get the documents collection
+  // const collectione = client.db(mongoDbName).collection(collection);
+  // // Find some documents
+  // collectione.find({ "documentName": documentName }).toArray(function(error, result) {
+  //   // process the query results
+  //   if (error) {
+  //     debuglog("Failed to query for reading in ", collection, " in db.");
+  //     callback(true,error);
+  //   } else if (result.length === 0) {
+  //     debuglog("Failed to read document in ", collection, " in db.");
+  //     callback(true,"Failed to read document in " + collection + " in db.");
+  //   } else {
+  //     debuglog("Success to read document in ", collection, " in db.");
 
-      let data = result[0];
-      delete data.documentName;
-      delete data._id;
+  //     let data = result[0];
+  //     delete data.documentName;
+  //     delete data._id;
       
-      callback(false,data);
-    }
-  });
+  //     callback(false,data);
+  //   }
+  // });
 }
 
 handlers.update = function(collection, documentName, documentContentObject, callback){
-  // Get the documents collection
-  const collectione = client.db(mongoDbName).collection(collection);
-  documentContentObject.documentName = documentName;
-  // Find some documents
-  collectione.findOneAndReplace({ "documentName" : { $eq : documentName } },documentContentObject,function(error, result) {
-    // process the query results
-    if (error) {
-      debuglog("Failure to quiry for updating in ", collection, " in db.", error);
-      callback("Failure to quiry for updating in " + collection + " in db.");
-    } else if (!result.lastErrorObject.updatedExisting) {
-      debuglog("Failure to match document for updating in ", collection, "in db");
-      callback("Failure to match document for updating in " + collection + "in db");
-    } else {
-      debuglog("Success to match and update document in ", collection, " in db.");
-      callback(false);
-    }
-  });
+  // // Get the documents collection
+  // const collectione = client.db(mongoDbName).collection(collection);
+  // documentContentObject.documentName = documentName;
+  // // Find some documents
+  // collectione.findOneAndReplace({ "documentName" : { $eq : documentName } },documentContentObject,function(error, result) {
+  //   // process the query results
+  //   if (error) {
+  //     debuglog("Failure to quiry for updating in ", collection, " in db.", error);
+  //     callback("Failure to quiry for updating in " + collection + " in db.");
+  //   } else if (!result.lastErrorObject.updatedExisting) {
+  //     debuglog("Failure to match document for updating in ", collection, "in db");
+  //     callback("Failure to match document for updating in " + collection + "in db");
+  //   } else {
+  //     debuglog("Success to match and update document in ", collection, " in db.");
+  //     callback(false);
+  //   }
+  // });
 }
 
 handlers.delete = function(collection, documentName, callback){
-  // Get the documents collection
-  const collectione = client.db(mongoDbName).collection(collection);
-  // Find some documents
-  collectione.findOneAndDelete({ "documentName" : documentName },function(error, result) {
-    // process the query results
-    if (error) {
-      debuglog("Failure to quiry for deletion in ", collection, " in db.", error);
-      callback("Failure to quiry for deletion in " + collection + " in db.");
-    } else if (!result.lastErrorObject.n) {
-      debuglog("Failure to match document for deletion in ", collection, " in db.");
-      callback("Failure to match document deletion in " + collection + " in db.");
-    } else {
-      debuglog("Success to match document for deletion in ", collection, " in db.");
-      callback(false);
-    }
-  });
+  // // Get the documents collection
+  // const collectione = client.db(mongoDbName).collection(collection);
+  // // Find some documents
+  // collectione.findOneAndDelete({ "documentName" : documentName },function(error, result) {
+  //   // process the query results
+  //   if (error) {
+  //     debuglog("Failure to quiry for deletion in ", collection, " in db.", error);
+  //     callback("Failure to quiry for deletion in " + collection + " in db.");
+  //   } else if (!result.lastErrorObject.n) {
+  //     debuglog("Failure to match document for deletion in ", collection, " in db.");
+  //     callback("Failure to match document deletion in " + collection + " in db.");
+  //   } else {
+  //     debuglog("Success to match document for deletion in ", collection, " in db.");
+  //     callback(false);
+  //   }
+  // });
 }
 
 handlers.list = function(collection, callback){
-  // Get the documents collection
-  const collectione = client.db(mongoDbName).collection(collection);
-  // Find some documents
-  collectione.find({},{'documentName':1}).toArray(function(error, result) {
-    // process the query results
-    if (error) {
-      debuglog("Failure to quiry for listing in ", collection, " in db.", error);
-      callback(true, "Failure to quiry for listing in " + collection + " in db.");
-    } else {
-      debuglog("Success to quiry for listing in ", collection, " in db.");
+  // // Get the documents collection
+  // const collectione = client.db(mongoDbName).collection(collection);
+  // // Find some documents
+  // collectione.find({},{'documentName':1}).toArray(function(error, result) {
+  //   // process the query results
+  //   if (error) {
+  //     debuglog("Failure to quiry for listing in ", collection, " in db.", error);
+  //     callback(true, "Failure to quiry for listing in " + collection + " in db.");
+  //   } else {
+  //     debuglog("Success to quiry for listing in ", collection, " in db.");
 
-      let array = [];
-      if (result.length !== 0) {
-        array = result.map( element => element.documentName );
-      }
+  //     let array = [];
+  //     if (result.length !== 0) {
+  //       array = result.map( element => element.documentName );
+  //     }
 
-      callback(false, array);
-    }
-  });
+  //     callback(false, array);
+  //   }
+  // });
 }
 
 // Client connection close on cli exit
 handlers.close = function(callback){
   // Client closure
-  client.close(function(error){
-    if (error){
-      debuglog("Failed to disconnect from db.");
-      callback(1);
-    } else {
-      debuglog("Success to disconnect from db.");
-      callback(0);
-    }
-  });
+  // client.close(function(error){
+  //   if (error){
+  //     debuglog("Failed to disconnect from db.");
+  //     callback(1);
+  //   } else {
+  //     debuglog("Success to disconnect from db.");
+  //     callback(0);
+  //   }
+  // });
 }
 
 // Additional handlers for db set up
 handlers.createIndexedCollection = function(collection, callback){
-  const collectione = client.db(mongoDbName).collection(collection);
-  collectione.createIndex({'documentName': 1}, function(error, data){
-    if (error) {
-      debuglog("Failed to index ", collection, " in db.");
-      callback("Failed to index " + collection + " in db.");
-    } else {
-      debuglog("Success to index ", collection, " in db.");
-      callback(false);
-    }
-  });
+  // const collectione = client.db(mongoDbName).collection(collection);
+  // collectione.createIndex({'documentName': 1}, function(error, data){
+  //   if (error) {
+  //     debuglog("Failed to index ", collection, " in db.");
+  //     callback("Failed to index " + collection + " in db.");
+  //   } else {
+  //     debuglog("Success to index ", collection, " in db.");
+  //     callback(false);
+  //   }
+  // });
 }
 
 module.exports = handlers;
 
 // waiting for the client to connect before loading the menu in the db an index basic collections
 let timer = setInterval(() => {
-  if ( client.isConnected() ){
-    // load the menu
-    handlers.create('menu','menu',{
-      "Margherita": 2.90,
-      "Funghi": 3.60,
-      "Capricciosa": 3.30,
-      "Quattro Stagioni": 3.70,
-      "Vegetariana": 2.80,
-      "Marinara": 4.20,
-      "Peperoni": 3.40,
-      "Napolitana":3.50,
-      "Hawaii": 3.20,
-      "Maltija": 3.60,
-      "Calzone": 4.20,
-      "Rucola": 3.50,
-      "Bolognese": 3.60,
-      "Meat Feast": 4.30,
-      "Kebabpizza": 4.00,
-      "Mexicana": 3.90,
-      "Quattro Formaggi": 4.20
-    },()=>{
-      debuglog('Menu is loaded in the db.');
-    })
-    // create and index the basic collections
-    handlers.createIndexedCollection('users',(error)=>{debuglog(error)});
-    handlers.createIndexedCollection('tokens',(error)=>{debuglog(error)});
-    handlers.createIndexedCollection('orders',(error)=>{debuglog(error)});
+  // if ( client.isConnected() ){
+  //   // load the menu
+  //   handlers.create('menu','menu',{
+  //     "Margherita": 2.90,
+  //     "Funghi": 3.60,
+  //     "Capricciosa": 3.30,
+  //     "Quattro Stagioni": 3.70,
+  //     "Vegetariana": 2.80,
+  //     "Marinara": 4.20,
+  //     "Peperoni": 3.40,
+  //     "Napolitana":3.50,
+  //     "Hawaii": 3.20,
+  //     "Maltija": 3.60,
+  //     "Calzone": 4.20,
+  //     "Rucola": 3.50,
+  //     "Bolognese": 3.60,
+  //     "Meat Feast": 4.30,
+  //     "Kebabpizza": 4.00,
+  //     "Mexicana": 3.90,
+  //     "Quattro Formaggi": 4.20
+  //   },()=>{
+  //     debuglog('Menu is loaded in the db.');
+  //   })
+  //   // create and index the basic collections
+  //   handlers.createIndexedCollection('users',(error)=>{debuglog(error)});
+  //   handlers.createIndexedCollection('tokens',(error)=>{debuglog(error)});
+  //   handlers.createIndexedCollection('orders',(error)=>{debuglog(error)});
 
-    // stop timer
-    clearInterval(timer);
-  }
+  //   // stop timer
+  //   clearInterval(timer);
+  // }
 }, 1000*(1/10) );
 
 // handlers.create('test','one',{"a":1,"b":2,"c":3},(err,data)=>{ console.log(err); });

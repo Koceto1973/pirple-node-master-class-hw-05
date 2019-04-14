@@ -14,7 +14,9 @@ var dbUrl ='';
 
 const user = encodeURIComponent(config.mysqlUser);
 const password = encodeURIComponent(config.mysqlPassword);
+const passwordLocal = encodeURIComponent(config.mysqlPasswordLocal);
 const mysqlDbServer = config.mysqlDbServer;
+const mysqlDbPort = config.mysqlDbPort;
 const mysqlDbName = encodeURIComponent(config.mysqlDbName);
 
 let connectionOptions = '';
@@ -23,53 +25,64 @@ let connectionOptions = '';
 if (config.envName == 'production') {
   connectionOptions = {
     host: mysqlDbServer,
+    port: mysqlDbPort,
     user: user,
     password: password,
     database: mysqlDbName
   }
 } else {
-  // connectionOptions = { // option for running local server with remote db
+  // connectionOptions = { // option for running local app with remote db
   //   host: mysqlDbServer,
+  //   port: mysqlDbPort,
   //   user: user,
   //   password: password,
   //   database: mysqlDbName
   // }
   connectionOptions = {
-    host: "127.0.0.1",
+    host: '127.0.0.1',
+    port:3307,
     user: 'root',
-    password: "furelise0442Oracle_TeamK",
-    database: undefined
+    password: passwordLocal,
+    database: 'pizza-db'
   }
 }
 
-// hook to db server
-const db = (connectionOptions, dbName = undefined) => {
+// hooking to db server
+const client = (connectionOptions, dbName = undefined) => {
   if (dbName){
     connectionOptions.database = dbName;
   }
-  debuglog('*** connected to db server');
+  debuglog('*** created client connected to db server');
   return mysql.createConnection(connectionOptions);
 }
 
+// db client instance
+const dbClient = client(connectionOptions);
+
 // explicit db connection of the db server hook
-const dbConnect = (hook) => hook.connect(function(err) {
+const connect = (client) => client.connect(function(err) {
   try {
     if (err) throw err;
     // connection established
-    debuglog('*** db connected');
+    debuglog('*** client db connected');
   } catch (error) {
-    debuglog('*** db error on connection:', error.sqlMessage);
+    debuglog('*** client db error on connection:', error.sqlMessage);
   }
 });
 
+// db client instance connection
+connect(dbClient);
+
 // closing db connection of the db server hook
-const dbClose = (hook) => hook.end((err)=>{
+const disconnect = (callback, client = dbClient) => client.end((err)=>{
   try {
     if (err) throw err;
     // connection established
-    debuglog('*** db disconnected');
+    debuglog('*** client db disconnected');
+    callback(0);
   } catch (error) {
-    debuglog('*** db error on disconnection:', error.sqlMessage);
+    debuglog('*** client db error on disconnection:', error.sqlMessage);
+    callback(1);
   }
 });
 
@@ -188,18 +201,7 @@ handlers.list = function(collection, callback){
 }
 
 // Client connection close on cli exit
-handlers.close = function(callback){
-  // Client closure
-  // client.close(function(error){
-  //   if (error){
-  //     debuglog("Failed to disconnect from db.");
-  //     callback(1);
-  //   } else {
-  //     debuglog("Success to disconnect from db.");
-  //     callback(0);
-  //   }
-  // });
-}
+handlers.close = disconnect;
 
 // Additional handlers for db set up
 handlers.createIndexedCollection = function(collection, callback){
@@ -219,7 +221,7 @@ module.exports = handlers;
 
 // waiting for the client to connect before loading the menu in the db an index basic collections
 let timer = setInterval(() => {
-  // if ( client.isConnected() ){
+  if ( dbClient.state === 'authenticated' ){
   //   // load the menu
   //   handlers.create('menu','menu',{
   //     "Margherita": 2.90,
@@ -247,9 +249,9 @@ let timer = setInterval(() => {
   //   handlers.createIndexedCollection('tokens',(error)=>{debuglog(error)});
   //   handlers.createIndexedCollection('orders',(error)=>{debuglog(error)});
 
-  //   // stop timer
-  //   clearInterval(timer);
-  // }
+  // stop timer
+  clearInterval(timer);
+  }
 }, 1000*(1/10) );
 
 // handlers.create('test','one',{"a":1,"b":2,"c":3},(err,data)=>{ console.log(err); });

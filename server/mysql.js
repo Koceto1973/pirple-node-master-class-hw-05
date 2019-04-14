@@ -5,12 +5,12 @@ const mysql = require('mysql');
 const util = require('util');
 
 // Local Dependencies
-var config = require('./config.js');
+const config = require('./config.js');
 
 const debuglog = util.debuglog('mysql');
 
 // db connection URL
-var dbUrl ='';
+let dbUrl ='';
 
 const user = encodeURIComponent(config.mysqlUser);
 const password = encodeURIComponent(config.mysqlPassword);

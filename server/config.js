@@ -21,7 +21,11 @@ environments.staging = {
   'mysqlPassword': cnfg.mysqlPassword,
   'mysqlPasswordLocal': cnfg.mysqlPasswordLocal,
   'mysqlDbServer': cnfg.mysqlDbServer,
+<<<<<<< HEAD
   'mysqllDbPort': cnfg.mysqlDbPort,
+=======
+  'mysqlDbPort': parseInt(cnfg.mysqlDbPort),
+>>>>>>> 3793c09769c94e54de5a663856b3186a5941c68b
   'mysqlDbName': cnfg.mysqlDbName,
   'hashingSecret' : cnfg.hashingSecret,
   'authTokenStripe':cnfg.testAuthTokenStripe,
@@ -47,7 +51,11 @@ environments.testing = {
   'mysqlPassword': cnfg.mysqlPassword,
   'mysqlPasswordLocal': cnfg.mysqlPasswordLocal,
   'mysqlDbServer': cnfg.mysqlDbServer,
+<<<<<<< HEAD
   'mysqllDbPort': cnfg.mysqlDbPort,
+=======
+  'mysqlDbPort': parseInt(cnfg.mysqlDbPort),
+>>>>>>> 3793c09769c94e54de5a663856b3186a5941c68b
   'mysqlDbName': cnfg.mysqlDbName,
   'hashingSecret' : cnfg.hashingSecret,
   'authTokenStripe':cnfg.testAuthTokenStripe,
@@ -72,7 +80,11 @@ environments.production = {
   'mysqlUser': cnfg.mysqlUser,
   'mysqlPassword': cnfg.mysqlPassword,
   'mysqlDbServer': cnfg.mysqlDbServer,
+<<<<<<< HEAD
   'mysqllDbPort': cnfg.mysqlDbPort,
+=======
+  'mysqlDbPort': parseInt(cnfg.mysqlDbPort),
+>>>>>>> 3793c09769c94e54de5a663856b3186a5941c68b
   'mysqlDbName': cnfg.mysqlDbName,
   'hashingSecret' : process.env.hashingSecret,
   'authTokenStripe':process.env.AuthTokenStripe,

@@ -1,13 +1,14 @@
 // MySQL specific interface
 
 // Global Dependencies
-const mysql = require('mysql');
+const fs = require('fs');
 const util = require('util');
+const debuglog = util.debuglog('mysql');
+
+const mysql = require('mysql');
 
 // Local Dependencies
 const config = require('./config.js');
-
-const debuglog = util.debuglog('mysql');
 
 // db connection URL
 let dbUrl ='';
@@ -72,6 +73,23 @@ const connect = (client) => client.connect(function(err) {
 
 // db client instance connection
 connect(dbClient);
+
+// single db query with formated result and callback
+const dbSingleQuery = (query, callback) => {
+  dbClient.query(query, function (err, ...others) {
+    debuglog("*** db query summary:", query);
+    try {
+      if (err) throw err;
+      debuglog('SUCCEEDED');
+      Array.prototype.forEach.call(others,curr=>{
+        if (curr) debuglog(curr);
+      });
+      if (callback) { callback(); }
+    } catch (error) {
+      debuglog("FAILED", error.sqlMessage);
+    }
+  })
+};
 
 // closing db connection of the db server hook
 const disconnect = (callback, client = dbClient) => client.end((err)=>{
@@ -219,38 +237,57 @@ handlers.createIndexedCollection = function(collection, callback){
 
 module.exports = handlers;
 
-// waiting for the client to connect before loading the menu in the db an index basic collections
+// waiting for the client to connect before loading the db tables
 let timer = setInterval(() => {
   if ( dbClient.state === 'authenticated' ){
-  //   // load the menu
-  //   handlers.create('menu','menu',{
-  //     "Margherita": 2.90,
-  //     "Funghi": 3.60,
-  //     "Capricciosa": 3.30,
-  //     "Quattro Stagioni": 3.70,
-  //     "Vegetariana": 2.80,
-  //     "Marinara": 4.20,
-  //     "Peperoni": 3.40,
-  //     "Napolitana":3.50,
-  //     "Hawaii": 3.20,
-  //     "Maltija": 3.60,
-  //     "Calzone": 4.20,
-  //     "Rucola": 3.50,
-  //     "Bolognese": 3.60,
-  //     "Meat Feast": 4.30,
-  //     "Kebabpizza": 4.00,
-  //     "Mexicana": 3.90,
-  //     "Quattro Formaggi": 4.20
-  //   },()=>{
-  //     debuglog('Menu is loaded in the db.');
-  //   })
-  //   // create and index the basic collections
+    // load the menu db table
+    dbSingleQuery(`CREATE TABLE if not exists \`${connectionOptions.database}\`.\`menu\`(id int primary key auto_increment,title varchar(255) not null, price double)`);
+    
+    // check if menu items are already loaded, load them if not
+    dbClient.query(`SELECT COUNT(*) FROM \`${connectionOptions.database}\`.\`menu\``, (error,result)=>{
+      if (error) {
+        debuglog('Error querying menu table.');
+      } else {
+        if (result[0]['COUNT(*)'] === 0 ) { // menu table is empty
+          let path = require('path').join(__dirname, '/.data/menu/menu.json');
+          const menu = JSON.parse(fs.readFileSync(path,'utf-8'));
+          path = require('path').join(__dirname, '/.data/menu/prices.json');
+          let menuCount = JSON.parse(fs.readFileSync(path,'utf-8')).length;
+
+          for( var key in menu ){
+            if( menu.hasOwnProperty(key)){
+              // add each menu item in the db table menu
+              dbSingleQuery(mysql.format(`INSERT INTO \`${connectionOptions.database}\`.\`menu\`(title, price) VALUES(?,?)`,[key, menu[key]]), ()=>{
+                menuCount--;
+                if ( menuCount === 0 ) {
+                  debuglog('Menu is loaded in the db.');
+                }
+              });
+            }
+          }
+        } else {
+          debuglog('Menu is already loaded in the db.');
+        }
+      }
+    });
+    
+
+  //   // create the basic db tables
   //   handlers.createIndexedCollection('users',(error)=>{debuglog(error)});
   //   handlers.createIndexedCollection('tokens',(error)=>{debuglog(error)});
   //   handlers.createIndexedCollection('orders',(error)=>{debuglog(error)});
 
   // stop timer
   clearInterval(timer);
+
+  //  testing queries
+  //  dbSingleQuery('CREATE DATABASE `pizza-db`');
+  //  dbSingleQuery('CREATE TABLE `pizza-db`.`menu`(id int primary key auto_increment,title varchar(255) not null,completed tinyint(1) not null default 0)');
+  //  dbSingleQuery('INSERT INTO `pizza-db`.`menu` (title, price) VALUES ("first pizza", 12.95)');
+  //  dbSingleQuery(mysql.format('INSERT INTO `pizza-db`.`menu`(title, price) VALUES(?,?)',[var1, var2]) );
+  //  dbSingleQuery('DELETE FROM `pizza-db`.`menu` WHERE ("id" = "1")');
+  //  dbSingleQuery('DROP TABLE `pizza-db`.`menu`');
+  //  dbSingleQuery('DROP DATABASE `pizza-db`');
   }
 }, 1000*(1/10) );
 

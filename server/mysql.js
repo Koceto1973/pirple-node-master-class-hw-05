@@ -241,7 +241,7 @@ module.exports = handlers;
 let timer = setInterval(() => {
   if ( dbClient.state === 'authenticated' ){
     // load the menu db table
-    dbSingleQuery(`CREATE TABLE if not exists \`${connectionOptions.database}\`.\`menu\`(id int primary key auto_increment,title varchar(255) not null, price double)`);
+    dbSingleQuery(`CREATE TABLE if not exists \`${connectionOptions.database}\`.\`menu\`(title varchar(4), pizzas JSON)`);
     
     // check if menu items are already loaded, load them if not
     dbClient.query(`SELECT COUNT(*) FROM \`${connectionOptions.database}\`.\`menu\``, (error,result)=>{
@@ -250,44 +250,48 @@ let timer = setInterval(() => {
       } else {
         if (result[0]['COUNT(*)'] === 0 ) { // menu table is empty
           let path = require('path').join(__dirname, '/.data/menu/menu.json');
-          const menu = JSON.parse(fs.readFileSync(path,'utf-8'));
-          path = require('path').join(__dirname, '/.data/menu/prices.json');
-          let menuCount = JSON.parse(fs.readFileSync(path,'utf-8')).length;
-
-          for( var key in menu ){
-            if( menu.hasOwnProperty(key)){
-              // add each menu item in the db table menu
-              dbSingleQuery(mysql.format(`INSERT INTO \`${connectionOptions.database}\`.\`menu\`(title, price) VALUES(?,?)`,[key, menu[key]]), ()=>{
-                menuCount--;
-                if ( menuCount === 0 ) {
-                  debuglog('Menu is loaded in the db.');
-                }
+          let _menu = '';
+          fs.readFile(path,'utf-8', (error, data)=>{
+            if (error || !data) {
+              debuglog('Error reading menu.json', error.message);
+            } else {
+              _menu = JSON.parse(data);
+              dbSingleQuery(mysql.format(`INSERT INTO \`${connectionOptions.database}\`.\`menu\`(title, pizzas) VALUES("menu",?)`, JSON.stringify(_menu)), () => {
+                debuglog('Menu is loaded in the db.');
+                
+                // create basic collections/ tables users, tokens, orders
+                dbSingleQuery(`CREATE TABLE if not exists \`${connectionOptions.database}\`.\`users\`(email varchar(255), \`user\` JSON)`, (error, result) => {
+                  if (!error) {
+                    debuglog('Users table/collection is ready to use.');
+                    dbSingleQuery(`CREATE TABLE if not exists \`${connectionOptions.database}\`.\`tokens\`(token varchar(255), \`tokenBody\` JSON)`, (error, result) => {
+                      if (!error) {
+                        debuglog('Tokens table/collection is ready to use.');
+                        dbSingleQuery(`CREATE TABLE if not exists \`${connectionOptions.database}\`.\`orders\`(id varchar(255), \`order\` JSON)`, (error, result) => {
+                          if (!error) {
+                            debuglog('Orders table/collection is ready to use.');
+                          } else {
+                            debuglog('Basic tables/collections might NOT be ready to use.');
+                          }
+                        });
+                      } else {
+                        debuglog('Basic tables/collections might NOT be ready to use.');
+                      }
+                    });
+                  } else {
+                    debuglog('Basic tables/collections might NOT be ready to use.');
+                  }
+                });
               });
             }
-          }
+          });
         } else {
           debuglog('Menu is already loaded in the db.');
         }
       }
     });
     
-
-  //   // create the basic db tables
-  //   handlers.createIndexedCollection('users',(error)=>{debuglog(error)});
-  //   handlers.createIndexedCollection('tokens',(error)=>{debuglog(error)});
-  //   handlers.createIndexedCollection('orders',(error)=>{debuglog(error)});
-
   // stop timer
   clearInterval(timer);
-
-  //  testing queries
-  //  dbSingleQuery('CREATE DATABASE `pizza-db`');
-  //  dbSingleQuery('CREATE TABLE `pizza-db`.`menu`(id int primary key auto_increment,title varchar(255) not null,completed tinyint(1) not null default 0)');
-  //  dbSingleQuery('INSERT INTO `pizza-db`.`menu` (title, price) VALUES ("first pizza", 12.95)');
-  //  dbSingleQuery(mysql.format('INSERT INTO `pizza-db`.`menu`(title, price) VALUES(?,?)',[var1, var2]) );
-  //  dbSingleQuery('DELETE FROM `pizza-db`.`menu` WHERE ("id" = "1")');
-  //  dbSingleQuery('DROP TABLE `pizza-db`.`menu`');
-  //  dbSingleQuery('DROP DATABASE `pizza-db`');
   }
 }, 1000*(1/10) );
 
@@ -297,4 +301,14 @@ let timer = setInterval(() => {
 // handlers.update('test','two',{'c':2},(err)=>{console.log(err)});
 // handlers.update('test','three',{'c':2},(err)=>{console.log(err)});
 // handlers.delete('test','three',(err)=>{console.log(err)});
-// handlers.list('test',(err,data)=>{ console.log(err); console.log(data); })
+// handlers.list('test',(err,data)=>{ console.log(err); console.log(data); });
+
+//  testing queries
+  //  dbSingleQuery('CREATE DATABASE `pizza-db`');
+  //  dbSingleQuery('CREATE TABLE `pizza-db`.`menu`(id int primary key auto_increment,title varchar(255) not null,completed tinyint(1) not null default 0)');
+  //  dbSingleQuery('INSERT INTO `pizza-db`.`menu` (title, price) VALUES ("first pizza", 12.95)');
+  //  dbSingleQuery('INSERT INTO `pizza-db`.`menu` (id, order) VALUES (orderId, JSON.stringify(order))');
+  //  dbSingleQuery(mysql.format('INSERT INTO `pizza-db`.`menu`(title, price) VALUES(?,?)',[var1, var2]) );
+  //  dbSingleQuery('DELETE FROM `pizza-db`.`menu` WHERE ("id" = "1")');
+  //  dbSingleQuery('DROP TABLE `pizza-db`.`menu`');
+  //  dbSingleQuery('DROP DATABASE `pizza-db`');

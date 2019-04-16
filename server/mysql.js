@@ -145,23 +145,21 @@ handlers.read = function(collection, documentName, callback){
 }
 
 handlers.update = function(collection, documentName, documentContentObject, callback){
-  // // Get the documents collection
-  // const collectione = client.db(mongoDbName).collection(collection);
-  // documentContentObject.documentName = documentName;
-  // // Find some documents
-  // collectione.findOneAndReplace({ "documentName" : { $eq : documentName } },documentContentObject,function(error, result) {
-  //   // process the query results
-  //   if (error) {
-  //     debuglog("Failure to quiry for updating in ", collection, " in db.", error);
-  //     callback("Failure to quiry for updating in " + collection + " in db.");
-  //   } else if (!result.lastErrorObject.updatedExisting) {
-  //     debuglog("Failure to match document for updating in ", collection, "in db");
-  //     callback("Failure to match document for updating in " + collection + "in db");
-  //   } else {
-  //     debuglog("Success to match and update document in ", collection, " in db.");
-  //     callback(false);
-  //   }
-  // });
+  const updated = JSON.stringify(documentContentObject);
+  // Find some documents
+  dbClient.query(`UPDATE \`${connectionOptions.database}\`.\`${collection}\` SET \`content\`='${updated}' WHERE \`title\`='${documentName}'`, (error, result) => {
+    // process the query results
+    if (error) {
+      debuglog(`Failed to update row in table ${collection}.`);
+      callback(`Failed to add row in table ${collection}.`);
+    } else if (result.changedRows === 0) {
+      debuglog(`Failed to update row in table ${collection}.`);
+      callback(`Failed to update row in table ${collection}.`);
+    } else {
+      debuglog(`Success to update row in table ${collection}.`);
+      callback(false);
+    }
+  });
 }
 
 handlers.delete = function(collection, documentName, callback){
@@ -208,20 +206,6 @@ handlers.list = function(collection, callback){
 // Client connection close on cli exit
 handlers.close = disconnect;
 
-// Additional handlers for db set up
-handlers.createIndexedCollection = function(collection, callback){
-  // const collectione = client.db(mongoDbName).collection(collection);
-  // collectione.createIndex({'documentName': 1}, function(error, data){
-  //   if (error) {
-  //     debuglog("Failed to index ", collection, " in db.");
-  //     callback("Failed to index " + collection + " in db.");
-  //   } else {
-  //     debuglog("Success to index ", collection, " in db.");
-  //     callback(false);
-  //   }
-  // });
-}
-
 module.exports = handlers;
 
 // waiting for the client to connect before loading the db tables
@@ -263,7 +247,7 @@ let timer = setInterval(() => {
               dbSingleQuery(`CREATE TABLE if not exists \`${connectionOptions.database}\`.\`orders\`(title varchar(255), \`content\` JSON)`, (error, result) => {
                 if (!error) {
                   debuglog('Orders table/collection is ready to use.');
-                  handlers.create('users','ann@test.com', {"a":1,"b":2,"c":3},(err)=>{ console.log(err); });
+                  handlers.update('users','ann@test.com', {"a":1},(err)=>{ console.log(err); });
                 } else {
                   debuglog('Basic tables/collections might NOT be ready to use.');
                 }

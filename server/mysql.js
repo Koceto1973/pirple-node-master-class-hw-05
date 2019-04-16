@@ -106,31 +106,30 @@ const disconnect = (callback, client = dbClient) => client.end((err)=>{
 
 const handlers = {};
 
-handlers.create = function(collection, documentName, documentContentObject, callback){
-  // // check for duplicates before creation
-  // documentContentObject.documentName = documentName;
-  // const collectione = client.db(mongoDbName).collection(collection);
-  // collectione.find({"documentName":{$eq: documentName}}).toArray(function(error1, data1){
-  //   if (error1){ // query error
-  //     debuglog("Failure to query before document create in ", collection, " in db.");
-  //     callback("Failure to query before document create in " + collection + " in db.");
-  //   } else { // documentName exists in db
-  //     if ( data1.length !== 0) {
-  //       debuglog("Duplicate documentNames are not allowed in ", collection, " in db.");
-  //       callback("Duplicate documentNames are not allowed in " + collection + " in db.");
-  //     } else { // actual insert
-  //       collectione.insertOne(documentContentObject, function(error2, data2){
-  //         if (error2) {
-  //           debuglog("Failed to create document in ", collection, " in db.");
-  //           callback("Failed to create document in " + collection + " in db.");
-  //         } else {
-  //           debuglog("Success to create document in ", collection, " in db.");
-  //           callback(false);
-  //         }
-  //       });
-  //     }
-  //   }
-  // });
+handlers.create = function(collection, documentName, documentContentObject, callback){ 
+  // check for duplicates before creation
+  dbClient.query(`SELECT * FROM \`${connectionOptions.database}\`.\`${collection}\` WHERE \`title\`='${documentName}'`, (error1, result1) => {
+    if (error1){ // query error
+      debuglog(`Failed to read row from table ${collection}.`);
+      callback(`Failed to read row from table ${collection}.`);
+    } else { // documentName exists in db
+      if ( result1.length !== 0) {
+        debuglog(`Duplicates in title column are not allowed in table ${collection}.`);
+        callback(`Duplicates in title column are not allowed in table ${collection}.`);
+      } else { // actual insert
+        const insertion = JSON.stringify(documentContentObject);
+        dbClient.query(`INSERT INTO \`${connectionOptions.database}\`.\`${collection}\` (title, content) VALUES ('${documentName}', '${insertion}')`, (error2, result2) => {
+          if (error2) {
+            debuglog(`Failed to add row in table ${collection}.`);
+            callback(`Failed to add row in table ${collection}.`);
+          } else {
+            debuglog(`Success to add row in table ${collection}.`);
+            callback(false);
+          }
+        });
+      }
+    }
+  });
 }
 
 handlers.read = function(collection, documentName, callback){
@@ -264,7 +263,7 @@ let timer = setInterval(() => {
               dbSingleQuery(`CREATE TABLE if not exists \`${connectionOptions.database}\`.\`orders\`(title varchar(255), \`content\` JSON)`, (error, result) => {
                 if (!error) {
                   debuglog('Orders table/collection is ready to use.');
-                  handlers.read('menu','menu',(err,data)=>{ console.log(err);  console.log(data); });
+                  handlers.create('users','ann@test.com', {"a":1,"b":2,"c":3},(err)=>{ console.log(err); });
                 } else {
                   debuglog('Basic tables/collections might NOT be ready to use.');
                 }
@@ -285,6 +284,7 @@ let timer = setInterval(() => {
   }
 }, 1000*(1/10) );
 
+// some testing handlers
 // handlers.create('test','one',{"a":1,"b":2,"c":3},(err,data)=>{ console.log(err); });
 // handlers.read('menu','menu',(err,data)=>{ console.log(err);  console.log(data); });
 // handlers.read('test','four',(err,data)=>{ console.log(err);  console.log(data); });
@@ -293,7 +293,7 @@ let timer = setInterval(() => {
 // handlers.delete('test','three',(err)=>{console.log(err)});
 // handlers.list('test',(err,data)=>{ console.log(err); console.log(data); });
 
-//  testing queries
+//  some testing queries
   //  dbSingleQuery('CREATE DATABASE `pizza-db`');
   //  dbSingleQuery('CREATE TABLE `pizza-db`.`menu`(id int primary key auto_increment,title varchar(255) not null,completed tinyint(1) not null default 0)');
   //  dbSingleQuery('INSERT INTO `pizza-db`.`menu` (title, price) VALUES ("first pizza", 12.95)');

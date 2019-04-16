@@ -180,25 +180,23 @@ handlers.delete = function(collection, documentName, callback){
 }
 
 handlers.list = function(collection, callback){
-  // // Get the documents collection
-  // const collectione = client.db(mongoDbName).collection(collection);
-  // // Find some documents
-  // collectione.find({},{'documentName':1}).toArray(function(error, result) {
-  //   // process the query results
-  //   if (error) {
-  //     debuglog("Failure to quiry for listing in ", collection, " in db.", error);
-  //     callback(true, "Failure to quiry for listing in " + collection + " in db.");
-  //   } else {
-  //     debuglog("Success to quiry for listing in ", collection, " in db.");
+  // Find some documents
+  dbClient.query(`SELECT * FROM \`${connectionOptions.database}\`.\`${collection}\``, (error, result) => {
+    // process the query results
+    if (error) {
+      debuglog(`Failed to quiry for listing table ${collection}.`, error);
+      callback(true, `Failed to quiry for listing table ${collection}.`);
+    } else {
+      debuglog(`Success to quiry for listing table ${collection}.`);
+      
+      let array = [];
+      if (result.length !== 0) {
+        array = result.map( element => element.title );
+      }
 
-  //     let array = [];
-  //     if (result.length !== 0) {
-  //       array = result.map( element => element.documentName );
-  //     }
-
-  //     callback(false, array);
-  //   }
-  // });
+      callback(false, array);
+    }
+  });
 }
 
 // Client connection close on cli exit
@@ -245,7 +243,7 @@ let timer = setInterval(() => {
               dbSingleQuery(`CREATE TABLE if not exists \`${connectionOptions.database}\`.\`orders\`(title varchar(255), \`content\` JSON)`, (error, result) => {
                 if (!error) {
                   debuglog('Orders table/collection is ready to use.');
-                  handlers.delete('users','ann@test.com',(err)=>{ console.log(err); });
+                  // queries for manual testing may be placed here ...
                 } else {
                   debuglog('Basic tables/collections might NOT be ready to use.');
                 }
@@ -274,13 +272,3 @@ let timer = setInterval(() => {
 // handlers.update('test','three',{'c':2},(err)=>{console.log(err)});
 // handlers.delete('test','three',(err)=>{console.log(err)});
 // handlers.list('test',(err,data)=>{ console.log(err); console.log(data); });
-
-//  some testing queries
-  //  dbSingleQuery('CREATE DATABASE `pizza-db`');
-  //  dbSingleQuery('CREATE TABLE `pizza-db`.`menu`(id int primary key auto_increment,title varchar(255) not null,completed tinyint(1) not null default 0)');
-  //  dbSingleQuery('INSERT INTO `pizza-db`.`menu` (title, price) VALUES ("first pizza", 12.95)');
-  //  dbSingleQuery('INSERT INTO `pizza-db`.`menu` (id, order) VALUES (orderId, JSON.stringify(order))');
-  //  dbSingleQuery(mysql.format('INSERT INTO `pizza-db`.`menu`(title, price) VALUES(?,?)',[var1, var2]) );
-  //  dbSingleQuery('DELETE FROM `pizza-db`.`menu` WHERE ("id" = "1")');
-  //  dbSingleQuery('DROP TABLE `pizza-db`.`menu`');
-  //  dbSingleQuery('DROP DATABASE `pizza-db`');

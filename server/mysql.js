@@ -110,7 +110,7 @@ handlers.create = function(collection, documentName, documentContentObject, call
   // check for duplicates before creation
   dbClient.query(`SELECT * FROM \`${connectionOptions.database}\`.\`${collection}\` WHERE \`title\`='${documentName}'`, (error1, result1) => {
     if (error1){ // query error
-      debuglog(`Failed to read row from table ${collection}.`);
+      debuglog(`Failed to read row from table ${collection}.`, error1);
       callback(`Failed to read row from table ${collection}.`);
     } else { // documentName exists in db
       if ( result1.length !== 0) {
@@ -120,7 +120,7 @@ handlers.create = function(collection, documentName, documentContentObject, call
         const insertion = JSON.stringify(documentContentObject);
         dbClient.query(`INSERT INTO \`${connectionOptions.database}\`.\`${collection}\` (title, content) VALUES ('${documentName}', '${insertion}')`, (error2, result2) => {
           if (error2) {
-            debuglog(`Failed to add row in table ${collection}.`);
+            debuglog(`Failed to add row in table ${collection}.`, error2);
             callback(`Failed to add row in table ${collection}.`);
           } else {
             debuglog(`Success to add row in table ${collection}.`);
@@ -138,7 +138,7 @@ handlers.read = function(collection, documentName, callback){
       debuglog(`Success to obtain results from quering table ${collection}.`);
       callback(false,JSON.parse(result[0].content));
     } else {
-      debuglog(`Failed to obtain results from quering table ${collection}.`);
+      debuglog(`Failed to obtain results from quering table ${collection}.`, error);
       callback(true, {'Note':error.message});
     }
   })
@@ -150,7 +150,7 @@ handlers.update = function(collection, documentName, documentContentObject, call
   dbClient.query(`UPDATE \`${connectionOptions.database}\`.\`${collection}\` SET \`content\`='${updated}' WHERE \`title\`='${documentName}'`, (error, result) => {
     // process the query results
     if (error) {
-      debuglog(`Failed to update row in table ${collection}.`);
+      debuglog(`Failed to update row in table ${collection}.`, error);
       callback(`Failed to add row in table ${collection}.`);
     } else if (result.changedRows === 0) {
       debuglog(`Failed to update row in table ${collection}.`);
@@ -163,22 +163,20 @@ handlers.update = function(collection, documentName, documentContentObject, call
 }
 
 handlers.delete = function(collection, documentName, callback){
-  // // Get the documents collection
-  // const collectione = client.db(mongoDbName).collection(collection);
-  // // Find some documents
-  // collectione.findOneAndDelete({ "documentName" : documentName },function(error, result) {
-  //   // process the query results
-  //   if (error) {
-  //     debuglog("Failure to quiry for deletion in ", collection, " in db.", error);
-  //     callback("Failure to quiry for deletion in " + collection + " in db.");
-  //   } else if (!result.lastErrorObject.n) {
-  //     debuglog("Failure to match document for deletion in ", collection, " in db.");
-  //     callback("Failure to match document deletion in " + collection + " in db.");
-  //   } else {
-  //     debuglog("Success to match document for deletion in ", collection, " in db.");
-  //     callback(false);
-  //   }
-  // });
+  // Find some documents
+  dbClient.query(`DELETE FROM \`${connectionOptions.database}\`.\`${collection}\` WHERE \`title\`='${documentName}'`,function(error, result) {
+    // process the query results
+    if (error) {
+      debuglog(`Failed to delete row from table ${collection}.`, error);
+      callback(`Failed to delete row from table ${collection}.`);
+    } else if (result.changedRows === 0) {
+      debuglog(`Failed to delete row from table ${collection}.`);
+      callback(`Failed to delete row from table ${collection}.`);
+    } else {
+      debuglog(`Success to delete row from table ${collection}.`);
+      callback(false);
+    }
+  });
 }
 
 handlers.list = function(collection, callback){
@@ -247,7 +245,7 @@ let timer = setInterval(() => {
               dbSingleQuery(`CREATE TABLE if not exists \`${connectionOptions.database}\`.\`orders\`(title varchar(255), \`content\` JSON)`, (error, result) => {
                 if (!error) {
                   debuglog('Orders table/collection is ready to use.');
-                  handlers.update('users','ann@test.com', {"a":1},(err)=>{ console.log(err); });
+                  handlers.delete('users','ann@test.com',(err)=>{ console.log(err); });
                 } else {
                   debuglog('Basic tables/collections might NOT be ready to use.');
                 }

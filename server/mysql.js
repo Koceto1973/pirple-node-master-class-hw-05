@@ -134,27 +134,15 @@ handlers.create = function(collection, documentName, documentContentObject, call
 }
 
 handlers.read = function(collection, documentName, callback){
-  // // Get the documents collection
-  // const collectione = client.db(mongoDbName).collection(collection);
-  // // Find some documents
-  // collectione.find({ "documentName": documentName }).toArray(function(error, result) {
-  //   // process the query results
-  //   if (error) {
-  //     debuglog("Failed to query for reading in ", collection, " in db.");
-  //     callback(true,error);
-  //   } else if (result.length === 0) {
-  //     debuglog("Failed to read document in ", collection, " in db.");
-  //     callback(true,"Failed to read document in " + collection + " in db.");
-  //   } else {
-  //     debuglog("Success to read document in ", collection, " in db.");
-
-  //     let data = result[0];
-  //     delete data.documentName;
-  //     delete data._id;
-      
-  //     callback(false,data);
-  //   }
-  // });
+  dbClient.query(`SELECT * FROM \`${connectionOptions.database}\`.\`${collection}\` WHERE \`title\`='${documentName}'`, (error, result) => {
+    if ( !error && result ) {
+      debuglog(`Success to obtain results from quering table ${collection}.`);
+      callback(false,JSON.parse(result[0].content));
+    } else {
+      debuglog(`Failed to obtain results from quering table ${collection}.`);
+      callback(true, {'Note':error.message});
+    }
+  })
 }
 
 handlers.update = function(collection, documentName, documentContentObject, callback){
@@ -241,7 +229,7 @@ module.exports = handlers;
 let timer = setInterval(() => {
   if ( dbClient.state === 'authenticated' ){
     // load the menu db table
-    dbSingleQuery(`CREATE TABLE if not exists \`${connectionOptions.database}\`.\`menu\`(title varchar(4), pizzas JSON)`);
+    dbSingleQuery(`CREATE TABLE if not exists \`${connectionOptions.database}\`.\`menu\`(title varchar(4), content JSON)`);
     
     // check if menu items are already loaded, load them if not
     dbClient.query(`SELECT COUNT(*) FROM \`${connectionOptions.database}\`.\`menu\``, (error,result)=>{
@@ -256,31 +244,8 @@ let timer = setInterval(() => {
               debuglog('Error reading menu.json', error.message);
             } else {
               _menu = JSON.parse(data);
-              dbSingleQuery(mysql.format(`INSERT INTO \`${connectionOptions.database}\`.\`menu\`(title, pizzas) VALUES("menu",?)`, JSON.stringify(_menu)), () => {
+              dbSingleQuery(mysql.format(`INSERT INTO \`${connectionOptions.database}\`.\`menu\`(title, content) VALUES("menu",?)`, JSON.stringify(_menu)), () => {
                 debuglog('Menu is loaded in the db.');
-                
-                // create basic collections/ tables users, tokens, orders
-                dbSingleQuery(`CREATE TABLE if not exists \`${connectionOptions.database}\`.\`users\`(email varchar(255), \`user\` JSON)`, (error, result) => {
-                  if (!error) {
-                    debuglog('Users table/collection is ready to use.');
-                    dbSingleQuery(`CREATE TABLE if not exists \`${connectionOptions.database}\`.\`tokens\`(token varchar(255), \`tokenBody\` JSON)`, (error, result) => {
-                      if (!error) {
-                        debuglog('Tokens table/collection is ready to use.');
-                        dbSingleQuery(`CREATE TABLE if not exists \`${connectionOptions.database}\`.\`orders\`(id varchar(255), \`order\` JSON)`, (error, result) => {
-                          if (!error) {
-                            debuglog('Orders table/collection is ready to use.');
-                          } else {
-                            debuglog('Basic tables/collections might NOT be ready to use.');
-                          }
-                        });
-                      } else {
-                        debuglog('Basic tables/collections might NOT be ready to use.');
-                      }
-                    });
-                  } else {
-                    debuglog('Basic tables/collections might NOT be ready to use.');
-                  }
-                });
               });
             }
           });
@@ -288,6 +253,31 @@ let timer = setInterval(() => {
           debuglog('Menu is already loaded in the db.');
         }
       }
+
+      // create basic collections/ tables users, tokens, orders
+      dbSingleQuery(`CREATE TABLE if not exists \`${connectionOptions.database}\`.\`users\`(title varchar(255), \`content\` JSON)`, (error, result) => {
+        if (!error) {
+          debuglog('Users table/collection is ready to use.');
+          dbSingleQuery(`CREATE TABLE if not exists \`${connectionOptions.database}\`.\`tokens\`(title varchar(255), \`content\` JSON)`, (error, result) => {
+            if (!error) {
+              debuglog('Tokens table/collection is ready to use.');
+              dbSingleQuery(`CREATE TABLE if not exists \`${connectionOptions.database}\`.\`orders\`(title varchar(255), \`content\` JSON)`, (error, result) => {
+                if (!error) {
+                  debuglog('Orders table/collection is ready to use.');
+                  handlers.read('menu','menu',(err,data)=>{ console.log(err);  console.log(data); });
+                } else {
+                  debuglog('Basic tables/collections might NOT be ready to use.');
+                }
+              });
+            } else {
+              debuglog('Basic tables/collections might NOT be ready to use.');
+            }
+          });
+        } else {
+          debuglog('Basic tables/collections might NOT be ready to use.');
+        }
+      });
+
     });
     
   // stop timer
@@ -296,7 +286,7 @@ let timer = setInterval(() => {
 }, 1000*(1/10) );
 
 // handlers.create('test','one',{"a":1,"b":2,"c":3},(err,data)=>{ console.log(err); });
-// handlers.read('test','three',(err,data)=>{ console.log(err);  console.log(data); });
+// handlers.read('menu','menu',(err,data)=>{ console.log(err);  console.log(data); });
 // handlers.read('test','four',(err,data)=>{ console.log(err);  console.log(data); });
 // handlers.update('test','two',{'c':2},(err)=>{console.log(err)});
 // handlers.update('test','three',{'c':2},(err)=>{console.log(err)});

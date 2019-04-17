@@ -13,13 +13,16 @@ api['ping'] = testers.ping;
 api['notFound'] = testers.notFound;
 
 // users CRUD
-api['MySQL: user post, token post, user get, user put, user delete, token delete'] = testers.usersCRUD;
+// user post, token post, user get, user put, user delete, token delete
+api['MySQL: users testing'] = testers.usersCRUD;
 
 // tokens CRUD
-api['MySQL: user post, token post, token get, token put, user delete, token delete'] = testers.tokensCRUD;
+// user post, token post, token get, token put, user delete, token delete
+api['MySQL: tokens testing'] = testers.tokensCRUD;
 
-// orders CRUD, menu get, order payment over Mongo DB storage via native driver
-api['MySQL: user post, token post, menu get, order post, order get, order put, order payment, order delete, user delete, token delete'] = testers.ordersCRUD;
+// orders CRUD, menu get, order payment
+// user post, token post, menu get, order post, order get, order put, order payment, order delete, user delete, token delete
+api['MySQL: orders testing'] = testers.ordersCRUD;
 
 // Export the tests to the runner
 module.exports = api;

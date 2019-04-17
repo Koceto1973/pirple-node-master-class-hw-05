@@ -54,7 +54,7 @@ helpers.createHttpsRequest = function(method,path,headers,queries,body,callback)
     res.on("end", function () {
       if(res.statusCode == 200 || res.statusCode == 201){ callback(false,JSON.parse(Buffer.concat(chunks))); } 
       else { callback(res.statusCode, JSON.parse(Buffer.concat(chunks)));}
-    });    
+    });
   });
 
   req.on('error',function(e){

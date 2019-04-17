@@ -16,6 +16,8 @@ _app.tests.apiFs = require('./api.fs');
 _app.tests.apiMongoNative = require('./api.mongo-native');
 _app.tests.apiMySQL = require('./api.mysql');
 
+const groupTestTime = 5;
+
 _app.groupTestsNamesArray = []; // [ unit, apiFS, apiMongoNative, etc. ]
 
 // Count all the tests and populate the above array
@@ -94,7 +96,7 @@ _app.runSubTests = function(index){
   // some delay to complete all the tests in each storage case
   setTimeout(()=>{
     _app.runSubTests(index+1);
-  },1000*( _app.groupTestsNamesArray[index] !== 'unit' ? 5 : 0 ));
+  },1000*( _app.groupTestsNamesArray[index] !== 'unit' ? groupTestTime : 0 ));
 }
 
 // Product a test outcome report
@@ -125,7 +127,7 @@ _app.produceTestReport = function(limit,successes,errors){
   setTimeout(()=>{
     console.log('app exit after testing...');
     process.exit(0);
-  }, 1000*15);
+  }, 1000*groupTestTime*(_app.groupTestsNamesArray.length-1));
 
 };
 

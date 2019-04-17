@@ -134,12 +134,15 @@ handlers.create = function(collection, documentName, documentContentObject, call
 
 handlers.read = function(collection, documentName, callback){
   dbClient.query(`SELECT * FROM \`${connectionOptions.database}\`.\`${collection}\` WHERE \`title\`='${documentName}'`, (error, result) => {
-    if ( !error && result ) {
-      debuglog(`Success to obtain results from quering table ${collection}.`);
-      callback(false,JSON.parse(result[0].content));
-    } else {
+    if (error) {
       debuglog(`Failed to obtain results from quering table ${collection}.`, error);
       callback(true, {'Note':error.message});
+    } else if (result.length === 0) {
+      debuglog(`No results from quering table ${collection}.`);
+      callback(true,`No results from quering table ${collection}.`);
+    } else {
+      debuglog(`Success to obtain results from quering table ${collection}.`);
+      callback(false,JSON.parse(result[0].content));
     }
   })
 }
@@ -167,11 +170,11 @@ handlers.delete = function(collection, documentName, callback){
   dbClient.query(`DELETE FROM \`${connectionOptions.database}\`.\`${collection}\` WHERE \`title\`='${documentName}'`,function(error, result) {
     // process the query results
     if (error) {
-      debuglog(`Failed to delete row from table ${collection}.`, error);
-      callback(`Failed to delete row from table ${collection}.`);
-    } else if (result.changedRows === 0) {
-      debuglog(`Failed to delete row from table ${collection}.`);
-      callback(`Failed to delete row from table ${collection}.`);
+      debuglog(`Failed to query row for deletion from table ${collection}.`, error);
+      callback(`Failed to query row for deletion from table ${collection}.`);
+    } else if (result.affectedRows === 0) {
+      debuglog(`Failed to match row for deletion from table ${collection}.`);
+      callback(`Failed to match row for deletion from table ${collection}.`);
     } else {
       debuglog(`Success to delete row from table ${collection}.`);
       callback(false);

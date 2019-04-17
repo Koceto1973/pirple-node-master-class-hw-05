@@ -3,6 +3,7 @@
 // Local Dependencies
 const fs = require('./fs');
 const mongo = require('./mongo');
+const mongoose = require('./mongoose');
 const mysql = require('./mysql');
 
 const data = {};
@@ -13,6 +14,8 @@ const dataStorageRouter = (action) => {
     case 'fs': return fs[action];
                break;
     case 'mongo-native': return mongo[action];
+                break;
+    case 'mongo-mongoose': return mongoose[action];
                 break;
     case 'mysql': return mysql[action];
                 break;

@@ -10,10 +10,12 @@ _app = {};
 // Holder of all tests
 _app.tests = {};
 
-// Test Dependencies, test are executed in this order
+// Test Dependencies, test groups are executed in this order - into the reccursive test runner
+// amend configuration if necessary on addition of new test groups
 _app.tests.unit = require('./unit');
 _app.tests.apiFs = require('./api.fs');
 _app.tests.apiMongoNative = require('./api.mongo-native');
+_app.tests.apiMongoMongoose = require('./api.mongo-mongoose');
 _app.tests.apiMySQL = require('./api.mysql');
 
 const groupTestTime = 5;
@@ -53,6 +55,8 @@ _app.runSubTests = function(index){
     handlers.redirectStorage('fs');
   } else if ( _app.groupTestsNamesArray[index] === 'apiMongoNative') {
     handlers.redirectStorage('mongo-native');
+  } else if ( _app.groupTestsNamesArray[index] === 'apiMongoMongoose') {
+    handlers.redirectStorage('mongo-mongoose');
   } else if ( _app.groupTestsNamesArray[index] === 'apiMySQL') {
     handlers.redirectStorage('mysql');
   }

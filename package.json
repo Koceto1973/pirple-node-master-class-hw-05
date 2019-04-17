@@ -7,19 +7,7 @@
     "test": "test"
   },
   "scripts": {
-    "start": "node index.js",
-    "staging-fs": "export NODE_ENV=staging || SET \"NODE_ENV=staging\" && export NODE_STORAGE=fs || SET \"NODE_STORAGE=fs\" && node index.js",
-    "staging-fs-watch": "nodemon --exec npm run staging-fs",
-    "staging-mongo-native": "export NODE_ENV=staging || SET \"NODE_ENV=staging\" && export NODE_STORAGE=mongo-native || SET \"NODE_STORAGE=mongo-native\" && node index.js",
-    "staging-mongo-native-watch": "nodemon --exec npm run staging-mongo-native",
-    "testing-fs": "export NODE_ENV=testing || SET \"NODE_ENV=testing\" && export NODE_STORAGE=fs || SET \"NODE_STORAGE=fs\" && node test/index.js",
-    "testing-fs-watch": "nodemon --exec npm run testing-fs",
-    "testing-mongo-native": "export NODE_ENV=testing || SET \"NODE_ENV=testing\" && export NODE_STORAGE=mongo-native || SET \"NODE_STORAGE=mongo-native\" && node test/index.js",
-    "testing-mongo-native-watch": "nodemon --exec npm run testing-mongo-native",
-    "debug-staging-fs": "nodemon --inspect-brk npm run staging-fs",
-    "debug-staging-mongo-native": "nodemon --inspect-brk npm run staging-mongo-native",
-    "debug-testing-fs": "nodemon --inspect-brk npm run testing-fs",
-    "debug-testing-mongo-native": "nodemon --inspect-brk npm run testing-mongo-native"
+    "start": "node index.js"
   },
   "engines": {
     "node": "10.14.2"

@@ -16,6 +16,7 @@ var v8 = require('v8');
 var config = require('./config');
 var _data = require('./data');
 var mongo = require('./mongo');
+var mongoose = require('./mongoose');
 var mysql = require('./mysql');
 
 class _events extends events{};
@@ -297,9 +298,11 @@ cli.responders.menu = function(){
 cli.responders.exit = function(){
   if ( config.storageType == 'mongo-native'){
     mongo.close(process.exit);
+  } else if ( config.storageType == 'mongo-mongoose'){
+    mongoose.close(process.exit);
   } else if ( config.storageType == 'mysql'){
     mysql.close(process.exit);
-  }else {
+  } else {
     process.exit(0);
   }
 }

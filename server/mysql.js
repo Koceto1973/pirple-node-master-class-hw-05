@@ -211,7 +211,7 @@ module.exports = handlers;
 let timer = setInterval(() => {
   if ( dbClient.state === 'authenticated' ){
     // load the menu db table
-    dbSingleQuery(`CREATE TABLE if not exists \`${connectionOptions.database}\`.\`menu\`(title varchar(4), content JSON)`);
+    dbSingleQuery(`CREATE TABLE if not exists \`${connectionOptions.database}\`.\`menu\`(title varchar(4), content JSON, INDEX(\`title\`))`);
     
     // check if menu items are already loaded, load them if not
     dbClient.query(`SELECT COUNT(*) FROM \`${connectionOptions.database}\`.\`menu\``, (error,result)=>{
@@ -237,13 +237,13 @@ let timer = setInterval(() => {
       }
 
       // create basic collections/ tables users, tokens, orders
-      dbSingleQuery(`CREATE TABLE if not exists \`${connectionOptions.database}\`.\`users\`(title varchar(255), \`content\` JSON)`, (error, result) => {
+      dbSingleQuery(`CREATE TABLE if not exists \`${connectionOptions.database}\`.\`users\`(title varchar(255), \`content\` JSON, INDEX(\`title\`)`, (error, result) => {
         if (!error) {
           debuglog('Users table/collection is ready to use.');
-          dbSingleQuery(`CREATE TABLE if not exists \`${connectionOptions.database}\`.\`tokens\`(title varchar(255), \`content\` JSON)`, (error, result) => {
+          dbSingleQuery(`CREATE TABLE if not exists \`${connectionOptions.database}\`.\`tokens\`(title varchar(255), \`content\` JSON, INDEX(\`title\`)`, (error, result) => {
             if (!error) {
               debuglog('Tokens table/collection is ready to use.');
-              dbSingleQuery(`CREATE TABLE if not exists \`${connectionOptions.database}\`.\`orders\`(title varchar(255), \`content\` JSON)`, (error, result) => {
+              dbSingleQuery(`CREATE TABLE if not exists \`${connectionOptions.database}\`.\`orders\`(title varchar(255), \`content\` JSON, INDEX(\`title\`)`, (error, result) => {
                 if (!error) {
                   debuglog('Orders table/collection is ready to use.');
                   // queries for manual testing may be placed here ...

@@ -78,7 +78,7 @@ handlers.routeCollection = (collection) => {
 }
 
 handlers.create = function(collection, documentName, documentContentObject, callback){
-
+  // Get the documents collection
   const collectione = handlers.routeCollection(collection);
   
   let document = new collectione({name:documentName, content:documentContentObject})
@@ -108,24 +108,27 @@ handlers.create = function(collection, documentName, documentContentObject, call
 
 handlers.read = function(collection, documentName, callback){
   // Get the documents collection
-  const collectione = client.db(mongoDbName).collection(collection);
+  const collectione = handlers.routeCollection(collection);
   // Find some documents
-  collectione.find({ "documentName": documentName }).toArray(function(error, result) {
+  collectione.find({ name: documentName }, function(error, query) {
     // process the query results
     if (error) {
-      debuglog("Failed to query for reading in ", collection, " in db.");
+      debuglog("Failed to query for reading from ", collection, " in db.");
       callback(true,error);
-    } else if (result.length === 0) {
-      debuglog("Failed to read document in ", collection, " in db.");
-      callback(true,"Failed to read document in " + collection + " in db.");
     } else {
-      debuglog("Success to read document in ", collection, " in db.");
+      let result = [];
+      query.map(queryElement => {
+        result.push(queryElement.name);
+      });
 
-      let data = result[0];
-      delete data.documentName;
-      delete data._id;
-      
-      callback(false,data);
+      if (result.length === 0) {
+        debuglog("Failed to read document from ", collection, " in db.");
+        callback(true,"Failed to read document from " + collection + " in db.");
+      } else {
+        debuglog("Success to read document from ", collection, " in db.");
+        
+        callback(false,result[0]);
+      }
     }
   });
 }
@@ -242,8 +245,8 @@ let timer = setInterval(() => {
   // }
 }, 1000*(1/10) );
 
-handlers.create('users','one',{"a":1,"b":2,"c":3},(err,data)=>{ console.log(err); });
-// handlers.read('test','three',(err,data)=>{ console.log(err);  console.log(data); });
+// handlers.create('users','three',{"a":1,"b":2,"c":3},(err,data)=>{ console.log(err); });
+ handlers.read('users','three',(err,data)=>{ console.log(err);  console.log(data); });
 // handlers.read('test','four',(err,data)=>{ console.log(err);  console.log(data); });
 // handlers.update('test','two',{'c':2},(err)=>{console.log(err)});
 // handlers.update('test','three',{'c':2},(err)=>{console.log(err)});

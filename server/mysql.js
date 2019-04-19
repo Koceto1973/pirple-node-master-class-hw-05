@@ -2,6 +2,7 @@
 
 // Global Dependencies
 const fs = require('fs');
+const path = require('path');
 const util = require('util');
 const debuglog = util.debuglog('mysql');
 
@@ -219,15 +220,19 @@ let timer = setInterval(() => {
         debuglog('Error querying menu table.');
       } else {
         if (result[0]['COUNT(*)'] === 0 ) { // menu table is empty
-          let path = require('path').join(__dirname, '/.data/menu/menu.json');
+          let _path = path.join(__dirname, '/.data/menu/menu.json');
           let _menu = '';
-          fs.readFile(path,'utf-8', (error, data)=>{
+          fs.readFile(_path,'utf-8', (error, data)=>{
             if (error || !data) {
               debuglog('Error reading menu.json', error.message);
             } else {
               _menu = JSON.parse(data);
-              dbSingleQuery(mysql.format(`INSERT INTO \`${connectionOptions.database}\`.\`menu\`(title, content) VALUES("menu",?)`, JSON.stringify(_menu)), () => {
-                debuglog('Menu is loaded in the db.');
+              dbSingleQuery(mysql.format(`INSERT INTO \`${connectionOptions.database}\`.\`menu\`(title, content) VALUES("menu",?)`, JSON.stringify(_menu)), (error, result) => {
+                if (error) {
+                  debuglog('Menu is NOT loaded in the db.');
+                } else {
+                  debuglog('Menu is loaded in the db.');
+                }
               });
             }
           });

@@ -2,6 +2,8 @@
 
 // Global Dependencies
 const {MongoClient, ObjectId} = require('mongodb');
+const fs = require('fs');
+const path = require('path');
 const util = require('util');
 
 // Local Dependencies
@@ -23,7 +25,7 @@ if (config.envName == 'production') {
   dbUrl = `mongodb://${user}:${password}@${mongoDbServer}/${mongoDbName}?authMechanism=${authMechanism}`;
 } else {
   // dbUrl = `mongodb://${user}:${password}@${mongoDbServer}/${mongoDbName}?authMechanism=${authMechanism}`; // option for running local server with remote db
-  dbUrl = "mongodb://127.0.0.1:27017";
+  dbUrl = `mongodb://127.0.0.1:27017/${mongoDbName}`;
 }
 
 // Create a new MongoClient
@@ -185,28 +187,26 @@ module.exports = handlers;
 // waiting for the client to connect before loading the menu in the db an index basic collections
 let timer = setInterval(() => {
   if ( client.isConnected() ){
-    // load the menu
-    handlers.create('menu','menu',{
-      "Margherita": 2.90,
-      "Funghi": 3.60,
-      "Capricciosa": 3.30,
-      "Quattro Stagioni": 3.70,
-      "Vegetariana": 2.80,
-      "Marinara": 4.20,
-      "Peperoni": 3.40,
-      "Napolitana":3.50,
-      "Hawaii": 3.20,
-      "Maltija": 3.60,
-      "Calzone": 4.20,
-      "Rucola": 3.50,
-      "Bolognese": 3.60,
-      "Meat Feast": 4.30,
-      "Kebabpizza": 4.00,
-      "Mexicana": 3.90,
-      "Quattro Formaggi": 4.20
-    },()=>{
-      debuglog('Menu is loaded in the db.');
-    })
+
+    // read the menu
+    let _path = path.join(__dirname, '/.data/menu/menu.json');
+    let _menu = '';
+    fs.readFile(_path,'utf-8', (error, data)=>{
+      if (error || !data) {
+        debuglog('Error reading menu.json', error.message);
+      } else {
+        _menu = JSON.parse(data);
+        // load the menu
+        handlers.create('menu','menu',_menu,(error)=>{
+          if ( error) {
+            debuglog('Menu is NOT loaded in the db.');
+          } else {
+            debuglog('Menu is loaded in the db.');
+          }
+        });
+      }
+    });
+
     // create and index the basic collections
     handlers.createIndexedCollection('users',(error)=>{debuglog(error)});
     handlers.createIndexedCollection('tokens',(error)=>{debuglog(error)});

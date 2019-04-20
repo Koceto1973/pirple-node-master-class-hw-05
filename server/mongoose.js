@@ -175,25 +175,26 @@ handlers.delete = function(collection, documentName, callback){
 }
 
 handlers.list = function(collection, callback){
-  // // Get the documents collection
-  // const collectione = client.db(mongoDbName).collection(collection);
-  // // Find some documents
-  // collectione.find({},{'documentName':1}).toArray(function(error, result) {
-  //   // process the query results
-  //   if (error) {
-  //     debuglog("Failure to quiry for listing in ", collection, " in db.", error);
-  //     callback(true, "Failure to quiry for listing in " + collection + " in db.");
-  //   } else {
-  //     debuglog("Success to quiry for listing in ", collection, " in db.");
+  // Get the documents collection
+  const collectione = handlers.routeCollection(collection);
 
-  //     let array = [];
-  //     if (result.length !== 0) {
-  //       array = result.map( element => element.documentName );
-  //     }
+  // Find some documents
+  collectione.find({},{name:1}, function(error, result) {
+    // process the query results
+    if (error) {
+      debuglog("Failure to quiry for listing in ", collection, " in db.", error);
+      callback(true, "Failure to quiry for listing in " + collection + " in db.");
+    } else {
+      debuglog("Success to quiry for listing in ", collection, " in db.");
 
-  //     callback(false, array);
-  //   }
-  // });
+      let array = [];
+      if (result && result.length !== 0) {
+        array = result.map( element => element.name );
+      }
+
+      callback(false, array);
+    }
+  });
 }
 
 // Client connection close on cli exit
@@ -247,10 +248,10 @@ let timer = setInterval(() => {
   // }
 }, 1000*(1/10) );
 
-// handlers.create('users','three',{"a":1,"b":2,"c":3},(err,data)=>{ console.log(err); });
+// handlers.create('users','two',{"a":1,"b":2,"c":3},(err,data)=>{ console.log(err); });
 // handlers.read('users','three',(err,data)=>{ console.log(err);  console.log(data); });
 // handlers.read('users','four',(err,data)=>{ console.log(err);  console.log(data); });
 // handlers.update('users','four',{'c':2},(err)=>{console.log(err)});
 // handlers.update('users','three',{'c':2},(err)=>{console.log(err)});
 //  handlers.delete('users','two',(err)=>{console.log(err)});
-// handlers.list('test',(err,data)=>{ console.log(err); console.log(data); })
+// handlers.list('users',(err,data)=>{ console.log(err); console.log(data); })

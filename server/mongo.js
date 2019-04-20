@@ -145,7 +145,7 @@ handlers.list = function(collection, callback){
       debuglog("Success to quiry for listing in ", collection, " in db.");
 
       let array = [];
-      if (result.length !== 0) {
+      if (result && result.length !== 0) {
         array = result.map( element => element.documentName );
       }
 

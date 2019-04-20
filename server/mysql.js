@@ -156,7 +156,7 @@ handlers.update = function(collection, documentName, documentContentObject, call
     if (error) {
       debuglog(`Failed to update row in table ${collection}.`, error);
       callback(`Failed to add row in table ${collection}.`);
-    } else if (result.changedRows === 0) {
+    } else if (result && result.changedRows === 0) {
       debuglog(`Failed to update row in table ${collection}.`);
       callback(`Failed to update row in table ${collection}.`);
     } else {
@@ -194,7 +194,7 @@ handlers.list = function(collection, callback){
       debuglog(`Success to quiry for listing table ${collection}.`);
       
       let array = [];
-      if (result.length !== 0) {
+      if (result && result.length !== 0) {
         array = result.map( element => element.title );
       }
 

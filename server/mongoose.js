@@ -135,22 +135,23 @@ handlers.read = function(collection, documentName, callback){
 
 handlers.update = function(collection, documentName, documentContentObject, callback){
   // // Get the documents collection
-  // const collectione = client.db(mongoDbName).collection(collection);
-  // documentContentObject.documentName = documentName;
-  // // Find some documents
-  // collectione.findOneAndReplace({ "documentName" : { $eq : documentName } },documentContentObject,function(error, result) {
-  //   // process the query results
-  //   if (error) {
-  //     debuglog("Failure to quiry for updating in ", collection, " in db.", error);
-  //     callback("Failure to quiry for updating in " + collection + " in db.");
-  //   } else if (!result.lastErrorObject.updatedExisting) {
-  //     debuglog("Failure to match document for updating in ", collection, "in db");
-  //     callback("Failure to match document for updating in " + collection + "in db");
-  //   } else {
-  //     debuglog("Success to match and update document in ", collection, " in db.");
-  //     callback(false);
-  //   }
-  // });
+  const collectione = handlers.routeCollection(collection);
+
+  // Find some documents
+  collectione.findOneAndUpdate({ name : { $eq : documentName } }, { content: documentContentObject }, { rawResult: true }, function(error, result) {
+    console.log(result); 
+    // process the query results
+     if (error) {
+       debuglog("Failure to quiry for updating in ", collection, " in db.", error);
+       callback("Failure to quiry for updating in " + collection + " in db.");
+     } else if (!result || !result.lastErrorObject.updatedExisting) {
+       debuglog("Failure to match document for updating in ", collection, " in db");
+       callback("Failure to match document for updating in " + collection + "in db");
+     } else {
+       debuglog("Success to match and update document in ", collection, " in db.");
+       callback(false);
+     }
+  });
 }
 
 handlers.delete = function(collection, documentName, callback){
@@ -246,9 +247,9 @@ let timer = setInterval(() => {
 }, 1000*(1/10) );
 
 // handlers.create('users','three',{"a":1,"b":2,"c":3},(err,data)=>{ console.log(err); });
- handlers.read('users','three',(err,data)=>{ console.log(err);  console.log(data); });
-// handlers.read('test','four',(err,data)=>{ console.log(err);  console.log(data); });
-// handlers.update('test','two',{'c':2},(err)=>{console.log(err)});
-// handlers.update('test','three',{'c':2},(err)=>{console.log(err)});
+// handlers.read('users','three',(err,data)=>{ console.log(err);  console.log(data); });
+// handlers.read('users','four',(err,data)=>{ console.log(err);  console.log(data); });
+ handlers.update('users','four',{'c':2},(err)=>{console.log(err)});
+// handlers.update('users','three',{'c':2},(err)=>{console.log(err)});
 // handlers.delete('test','three',(err)=>{console.log(err)});
 // handlers.list('test',(err,data)=>{ console.log(err); console.log(data); })

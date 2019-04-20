@@ -103,9 +103,9 @@ handlers.update = function(collection, documentName, documentContentObject, call
     if (error) {
       debuglog("Failure to quiry for updating in ", collection, " in db.", error);
       callback("Failure to quiry for updating in " + collection + " in db.");
-    } else if (!result.lastErrorObject.updatedExisting) {
-      debuglog("Failure to match document for updating in ", collection, "in db");
-      callback("Failure to match document for updating in " + collection + "in db");
+    } else if (!result || !result.lastErrorObject.updatedExisting) {
+      debuglog("Failure to match document for updating in ", collection, " in db");
+      callback("Failure to match document for updating in " + collection + " in db");
     } else {
       debuglog("Success to match and update document in ", collection, " in db.");
       callback(false);

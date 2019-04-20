@@ -212,7 +212,7 @@ module.exports = handlers;
 let timer = setInterval(() => {
   if ( dbClient.state === 'authenticated' ){
     // load the menu db table
-    dbSingleQuery(`CREATE TABLE if not exists \`${connectionOptions.database}\`.\`menu\`(title varchar(4), content JSON, INDEX(\`title\`))`);
+    dbSingleQuery(`CREATE TABLE if not exists \`${connectionOptions.database}\`.\`menu\`(title varchar(4), content JSON, INDEX(title) )`);
     
     // check if menu items are already loaded, load them if not
     dbClient.query(`SELECT COUNT(*) FROM \`${connectionOptions.database}\`.\`menu\``, (error,result)=>{
@@ -227,7 +227,7 @@ let timer = setInterval(() => {
               debuglog('Error reading menu.json', error.message);
             } else {
               _menu = JSON.parse(data);
-              dbSingleQuery(mysql.format(`INSERT INTO \`${connectionOptions.database}\`.\`menu\`(title, content) VALUES("menu",?)`, JSON.stringify(_menu)), (error, result) => {
+              dbClient.query(mysql.format(`INSERT INTO \`${connectionOptions.database}\`.\`menu\`(title, content) VALUES("menu",?)`, JSON.stringify(_menu)), (error, result) => {
                 if (error) {
                   debuglog('Menu is NOT loaded in the db.');
                 } else {
@@ -242,14 +242,14 @@ let timer = setInterval(() => {
       }
 
       // create basic collections/ tables users, tokens, orders
-      dbSingleQuery(`CREATE TABLE if not exists \`${connectionOptions.database}\`.\`users\`(title varchar(255), \`content\` JSON, INDEX(\`title\`)`, (error, result) => {
-        if (!error) {
+      dbClient.query(`CREATE TABLE if not exists \`${connectionOptions.database}\`.\`users\`(title varchar(255), content JSON, INDEX(title) )`, (error1, result) => {
+        if (!error1) {
           debuglog('Users table/collection is ready to use.');
-          dbSingleQuery(`CREATE TABLE if not exists \`${connectionOptions.database}\`.\`tokens\`(title varchar(255), \`content\` JSON, INDEX(\`title\`)`, (error, result) => {
-            if (!error) {
+          dbClient.query(`CREATE TABLE if not exists \`${connectionOptions.database}\`.\`tokens\`(title varchar(255), content JSON, INDEX( title) )`, (error2, result) => {
+            if (!error2) {
               debuglog('Tokens table/collection is ready to use.');
-              dbSingleQuery(`CREATE TABLE if not exists \`${connectionOptions.database}\`.\`orders\`(title varchar(255), \`content\` JSON, INDEX(\`title\`)`, (error, result) => {
-                if (!error) {
+              dbClient.query(`CREATE TABLE if not exists \`${connectionOptions.database}\`.\`orders\`(title varchar(255), content JSON, INDEX(title) )`, (error3, result) => {
+                if (!error3) {
                   debuglog('Orders table/collection is ready to use.');
                   // queries for manual testing may be placed here ...
                 } else {

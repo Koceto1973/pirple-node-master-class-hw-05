@@ -142,8 +142,7 @@ handlers.update = function(collection, documentName, documentContentObject, call
 
   // Find some documents
   collectione.findOneAndUpdate({ name : { $eq : documentName } }, { content: documentContentObject }, { rawResult: true }, function(error, result) {
-    console.log(result); 
-    // process the query results
+     // process the query results
      if (error) {
        debuglog("Failure to quiry for updating in ", collection, " in db.", error);
        callback("Failure to quiry for updating in " + collection + " in db.");

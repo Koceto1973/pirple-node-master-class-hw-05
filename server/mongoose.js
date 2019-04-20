@@ -155,22 +155,23 @@ handlers.update = function(collection, documentName, documentContentObject, call
 }
 
 handlers.delete = function(collection, documentName, callback){
-  // // Get the documents collection
-  // const collectione = client.db(mongoDbName).collection(collection);
-  // // Find some documents
-  // collectione.findOneAndDelete({ "documentName" : documentName },function(error, result) {
-  //   // process the query results
-  //   if (error) {
-  //     debuglog("Failure to quiry for deletion in ", collection, " in db.", error);
-  //     callback("Failure to quiry for deletion in " + collection + " in db.");
-  //   } else if (!result.lastErrorObject.n) {
-  //     debuglog("Failure to match document for deletion in ", collection, " in db.");
-  //     callback("Failure to match document deletion in " + collection + " in db.");
-  //   } else {
-  //     debuglog("Success to match document for deletion in ", collection, " in db.");
-  //     callback(false);
-  //   }
-  // });
+  // Get the documents collection
+  const collectione = handlers.routeCollection(collection);
+
+  // Find some documents
+  collectione.findOneAndDelete({ name : documentName }, { rawResult: true }, function(error, result) {
+     // process the query results
+    if (error) {
+      debuglog("Failure to quiry for deletion in ", collection, " in db.", error);
+      callback("Failure to quiry for deletion in " + collection + " in db.");
+    } else if (!result || !result.lastErrorObject.n) {
+      debuglog("Failure to match document for deletion in ", collection, " in db.");
+      callback("Failure to match document deletion in " + collection + " in db.");
+    } else {
+      debuglog("Success to match document for deletion in ", collection, " in db.");
+      callback(false);
+    }
+  });
 }
 
 handlers.list = function(collection, callback){
@@ -249,7 +250,7 @@ let timer = setInterval(() => {
 // handlers.create('users','three',{"a":1,"b":2,"c":3},(err,data)=>{ console.log(err); });
 // handlers.read('users','three',(err,data)=>{ console.log(err);  console.log(data); });
 // handlers.read('users','four',(err,data)=>{ console.log(err);  console.log(data); });
- handlers.update('users','four',{'c':2},(err)=>{console.log(err)});
+// handlers.update('users','four',{'c':2},(err)=>{console.log(err)});
 // handlers.update('users','three',{'c':2},(err)=>{console.log(err)});
-// handlers.delete('test','three',(err)=>{console.log(err)});
+//  handlers.delete('users','two',(err)=>{console.log(err)});
 // handlers.list('test',(err,data)=>{ console.log(err); console.log(data); })

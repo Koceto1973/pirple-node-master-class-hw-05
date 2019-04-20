@@ -122,7 +122,7 @@ handlers.delete = function(collection, documentName, callback){
     if (error) {
       debuglog("Failure to quiry for deletion in ", collection, " in db.", error);
       callback("Failure to quiry for deletion in " + collection + " in db.");
-    } else if (!result.lastErrorObject.n) {
+    } else if (!result || !result.lastErrorObject.n) {
       debuglog("Failure to match document for deletion in ", collection, " in db.");
       callback("Failure to match document deletion in " + collection + " in db.");
     } else {

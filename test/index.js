@@ -17,6 +17,7 @@ _app.tests.apiFs = require('./api.fs');
 _app.tests.apiMongoNative = require('./api.mongo-native');
 _app.tests.apiMongoMongoose = require('./api.mongo-mongoose');
 _app.tests.apiMySQL = require('./api.mysql');
+_app.tests.apiMySQLxdevapi = require('./api.mysql-xdevapi');
 
 const groupTestTime = 5;
 
@@ -59,6 +60,8 @@ _app.runSubTests = function(index){
     handlers.redirectStorage('mongo-mongoose');
   } else if ( _app.groupTestsNamesArray[index] === 'apiMySQL') {
     handlers.redirectStorage('mysql');
+  } else if ( _app.groupTestsNamesArray[index] === 'apiMySQLxdevapi') {
+    handlers.redirectStorage('mysql-xdevapi');
   }
 
   // some tiny delay to catch up with storage switch before running the tests

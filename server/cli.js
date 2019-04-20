@@ -18,6 +18,7 @@ var _data = require('./data');
 var mongo = require('./mongo');
 var mongoose = require('./mongoose');
 var mysql = require('./mysql');
+var xdevapi = require('./mysql.xdevapi');
 
 class _events extends events{};
 var e = new _events();
@@ -302,6 +303,8 @@ cli.responders.exit = function(){
     mongoose.close(process.exit);
   } else if ( config.storageType == 'mysql'){
     mysql.close(process.exit);
+  } else if ( config.storageType == 'mysql-xdevapi'){
+    xdevapi.close(process.exit);
   } else {
     process.exit(0);
   }

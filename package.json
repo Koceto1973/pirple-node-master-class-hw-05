@@ -1,7 +1,7 @@
 {
   "name": "pirple-node-master-class-hw-05",
   "version": "1.0.0",
-  "description": "",
+  "description": "online pizza store",
   "main": "index.js",
   "directories": {
     "test": "test"
@@ -24,6 +24,7 @@
   "homepage": "https://github.com/Koceto1973/pirple-node-master-class-hw-05#readme",
   "devDependencies": {},
   "dependencies": {
+    "@mysql/xdevapi": "~8.0.15",
     "mongodb": "~3.2.2",
     "mongoose": "~5.5.2",
     "mysql": "~2.16.0"

@@ -5,7 +5,8 @@
 # export NODE_STORAGE=fs || SET \"NODE_STORAGE=fs\"
 # export NODE_STORAGE=mongo-native || SET \"NODE_STORAGE=mongo-native\"
 # export NODE_STORAGE=mongo-mongoose || SET \"NODE_STORAGE=mongo-mongoose\"
- export NODE_STORAGE=mysql || SET \"NODE_STORAGE=mysql\"
+# export NODE_STORAGE=mysql || SET \"NODE_STORAGE=mysql\"
+ export NODE_STORAGE=mysql-xdevapi || SET \"NODE_STORAGE=mysql-xdevapi\"
 
 # export PORT=3002 || SET \"PORT=3002\"
 

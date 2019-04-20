@@ -5,6 +5,7 @@ const fs = require('./fs');
 const mongo = require('./mongo');
 const mongoose = require('./mongoose');
 const mysql = require('./mysql');
+const xdevapi = require('./mysql.xdevapi');
 
 const data = {};
 
@@ -18,6 +19,8 @@ const dataStorageRouter = (action) => {
     case 'mongo-mongoose': return mongoose[action];
                 break;
     case 'mysql': return mysql[action];
+                break;
+    case 'mysql': return xdevapi[action];
                 break;
     default: return fs[action]; 
   }

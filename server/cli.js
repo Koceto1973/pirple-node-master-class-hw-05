@@ -19,6 +19,7 @@ var mongo = require('./mongo');
 var mongoose = require('./mongoose');
 var mysql = require('./mysql');
 var xdevapi = require('./mysql.xdevapi');
+var postgres = require('./postgres');
 
 class _events extends events{};
 var e = new _events();
@@ -297,16 +298,13 @@ cli.responders.menu = function(){
 
 // Exit
 cli.responders.exit = function(){
-  if ( config.storageType == 'mongo-native'){
-    mongo.close(process.exit);
-  } else if ( config.storageType == 'mongo-mongoose'){
-    mongoose.close(process.exit);
-  } else if ( config.storageType == 'mysql'){
-    mysql.close(process.exit);
-  } else if ( config.storageType == 'mysql-xdevapi'){
-    xdevapi.close(process.exit);
-  } else {
-    process.exit(0);
+  switch (config.storageType) {
+    case 'mongo-native'   : mongo.close(process.exit);    break;
+    case 'mongo-mongoose' : mongoose.close(process.exit); break;
+    case 'mysql'          : mysql.close(process.exit);    break;
+    case 'mysql-xdevapi'  : xdevapi.close(process.exit);  break;
+    case 'postgres'       : postgres.close(process.exit); break;
+    default: process.exit(0);
   }
 }
 

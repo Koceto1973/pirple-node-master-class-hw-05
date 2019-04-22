@@ -6,23 +6,20 @@ const mongo = require('./mongo');
 const mongoose = require('./mongoose');
 const mysql = require('./mysql');
 const xdevapi = require('./mysql.xdevapi');
+const postgres = require('./postgres');
 
 const data = {};
 
 // data storage router
 const dataStorageRouter = (action) => {
   switch (process.env.NODE_STORAGE) {
-    case 'fs': return fs[action];
-               break;
-    case 'mongo-native': return mongo[action];
-                break;
-    case 'mongo-mongoose': return mongoose[action];
-                break;
-    case 'mysql': return mysql[action];
-                break;
-    case 'mysql': return xdevapi[action];
-                break;
-    default: return fs[action]; 
+    case 'fs': return fs[action];                   break;
+    case 'mongo-native': return mongo[action];      break;
+    case 'mongo-mongoose': return mongoose[action]; break;
+    case 'mysql': return mysql[action];             break;
+    case 'mysql': return xdevapi[action];           break;
+    case 'postgres': return postgres[action];       break;
+    default: return mongo[action]; 
   }
 }
 

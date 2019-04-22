@@ -1,4 +1,4 @@
-// API Tests with Mongo DB via native driver ( mongo-native ) as a storage
+// API Tests with MySQL DB ( via mysql driver package ) as a storage
 
 // Dependencies
 var assert = require('assert');

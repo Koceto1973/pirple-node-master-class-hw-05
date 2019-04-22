@@ -18,6 +18,7 @@ _app.tests.apiMongoNative = require('./api.mongo-native');
 _app.tests.apiMongoMongoose = require('./api.mongo-mongoose');
 _app.tests.apiMySQL = require('./api.mysql');
 _app.tests.apiMySQLxdevapi = require('./api.mysql-xdevapi');
+_app.tests.apiPostgres = require('./api.postgres');
 
 const groupTestTime = 5;
 
@@ -50,19 +51,19 @@ _app.runSubTests = function(index){
   // reccursion bottom
   if ( index === _app.groupTestsNamesArray.length ) return;
 
-  console.log('Testing group:', _app.groupTestsNamesArray[index]);
-  
-  if ( _app.groupTestsNamesArray[index] === 'apiFs') {
-    handlers.redirectStorage('fs');
-  } else if ( _app.groupTestsNamesArray[index] === 'apiMongoNative') {
-    handlers.redirectStorage('mongo-native');
-  } else if ( _app.groupTestsNamesArray[index] === 'apiMongoMongoose') {
-    handlers.redirectStorage('mongo-mongoose');
-  } else if ( _app.groupTestsNamesArray[index] === 'apiMySQL') {
-    handlers.redirectStorage('mysql');
-  } else if ( _app.groupTestsNamesArray[index] === 'apiMySQLxdevapi') {
-    handlers.redirectStorage('mysql-xdevapi');
-  }
+  // iterate testing over each storage after storage redirection
+  console.log('Testing group:', _app.groupTestsNamesArray[index]);  
+  let storageRedirector = '';
+  switch (_app.groupTestsNamesArray[index]) {
+    case 'apiFS': storageRedirector = 'fs'; break;
+    case 'apiMongoNative': storageRedirector = 'mongo-native'; break;
+    case 'apiMongoMongoose': storageRedirector = 'mongo-mongoose'; break;
+    case 'apiMySQL': storageRedirector = 'mysql'; break;
+    case 'apiMySQLxdevapi': storageRedirector = 'mysql-xdevapi'; break;
+    case 'apiPostgres': storageRedirector = 'postgres'; break;
+    default: storageRedirector = 'mongo-native';
+  }  
+  handlers.redirectStorage(storageRedirector);
 
   // some tiny delay to catch up with storage switch before running the tests
   setTimeout(()=>{

@@ -126,23 +126,20 @@ handlers.read = function(collection, documentName, callback){
 }
 
 handlers.update = function(collection, documentName, documentContentObject, callback){
-  // Get the documents collection
-  // const collectione = client.db(mongoDbName).collection(collection);
-  // documentContentObject.documentName = documentName;
-  // // Find some documents
-  // collectione.findOneAndReplace({ "documentName" : { $eq : documentName } },documentContentObject,function(error, result) {
-  //   // process the query results
-  //   if (error) {
-  //     debuglog("Failure to quiry for updating in ", collection, " in db.", error);
-  //     callback("Failure to quiry for updating in " + collection + " in db.");
-  //   } else if (!result || !result.lastErrorObject.updatedExisting) {
-  //     debuglog("Failure to match document for updating in ", collection, " in db");
-  //     callback("Failure to match document for updating in " + collection + " in db");
-  //   } else {
-  //     debuglog("Success to match and update document in ", collection, " in db.");
-  //     callback(false);
-  //   }
-  // });
+  // Find the document
+  client.query(`UPDATE "${collection}" SET "content"='${JSON.stringify(documentContentObject)}' WHERE "title"='${documentName}'`,function(error, result) {
+    // process the query results
+    if (error) {
+      debuglog("Failure to quiry for updating in ", collection, " in db.", error);
+      callback("Failure to quiry for updating in " + collection + " in db.");
+    } else if (!result || result.rowCount == 0) {
+      debuglog("Failure to match document for updating in ", collection, " in db");
+      callback("Failure to match document for updating in " + collection + " in db");
+    } else {
+      debuglog("Success to match and update document in ", collection, " in db.");
+      callback(false);
+    }
+  });
 }
 
 handlers.delete = function(collection, documentName, callback){
@@ -275,7 +272,7 @@ let timer = setInterval(() => {
                   debuglog('Orders table/collection is ready to use.');
                   handlers.createIndexedCollection('orders',()=>{});
                   // queries for manual testing may be placed here ...
-                  handlers.create('playground','one',{"a":1,"b":2,"c":3},(err,data)=>{ console.log(err); });
+                  // handlers.update('playground','two',{"a":4,"b":5,"c":6},(err,data)=>{ console.log(err); });
                 } else {
                   debuglog('Basic tables/collections might NOT be ready to use.');
                 }

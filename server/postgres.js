@@ -83,29 +83,27 @@ const handlers = {};
 
 handlers.create = function(collection, documentName, documentContentObject, callback){
   // check for duplicates before creation
-  // documentContentObject.documentName = documentName;
-  // const collectione = client.db(mongoDbName).collection(collection);
-  // collectione.find({"documentName":{$eq: documentName}}).toArray(function(error1, data1){
-  //   if (error1){ // query error
-  //     debuglog("Failure to query before document create in ", collection, " in db.");
-  //     callback("Failure to query before document create in " + collection + " in db.");
-  //   } else { // documentName exists in db
-  //     if ( data1.length !== 0) {
-  //       debuglog("Duplicate documentNames are not allowed in ", collection, " in db.");
-  //       callback("Duplicate documentNames are not allowed in " + collection + " in db.");
-  //     } else { // actual insert
-  //       collectione.insertOne(documentContentObject, function(error2, data2){
-  //         if (error2) {
-  //           debuglog("Failed to create document in ", collection, " in db.");
-  //           callback("Failed to create document in " + collection + " in db.");
-  //         } else {
-  //           debuglog("Success to create document in ", collection, " in db.");
-  //           callback(false);
-  //         }
-  //       });
-  //     }
-  //   }
-  // });
+  client.query(`select "title" from "${collection}" where "title"='${documentName}'`, function(error1, data1){
+    if (error1){ // query error
+      debuglog("Failure to query before document create in ", collection, " in db.");
+      callback("Failure to query before document create in " + collection + " in db.");
+    } else { // documentName exists in db
+      if ( data1.rowCount !== 0) {
+        debuglog("Duplicate documentNames are not allowed in ", collection, " in db.");
+        callback("Duplicate documentNames are not allowed in " + collection + " in db.");
+      } else { // actual insert
+        client.query(`insert into "${collection}"("title", "content") values('${documentName}', '${JSON.stringify(documentContentObject)}')`, function(error2, data2){
+          if (error2) {
+            debuglog("Failed to create document in ", collection, " in db.");
+            callback("Failed to create document in " + collection + " in db.");
+          } else {
+            debuglog("Success to create document in ", collection, " in db.");
+            callback(false);
+          }
+        });
+      }
+    }
+  });
 }
 
 handlers.read = function(collection, documentName, callback){
@@ -121,7 +119,7 @@ handlers.read = function(collection, documentName, callback){
     } else {
       debuglog("Success to read document in ", collection, " in db.");
 
-      let data = result.rows[0].content;
+      let data = JSON.parse(result.rows[0].content);
       callback(false, data);
     }
   });
@@ -277,6 +275,7 @@ let timer = setInterval(() => {
                   debuglog('Orders table/collection is ready to use.');
                   handlers.createIndexedCollection('orders',()=>{});
                   // queries for manual testing may be placed here ...
+                  handlers.create('playground','one',{"a":1,"b":2,"c":3},(err,data)=>{ console.log(err); });
                 } else {
                   debuglog('Basic tables/collections might NOT be ready to use.');
                 }
@@ -298,8 +297,8 @@ let timer = setInterval(() => {
   }
 }, 1000*(1/10) );
 
-// handlers.create('test','one',{"a":1,"b":2,"c":3},(err,data)=>{ console.log(err); });
- handlers.read('playground','two',(err,data)=>{ console.log(err);  console.log(data); });
+// handlers.create('playground','one',{"a":1,"b":2,"c":3},(err,data)=>{ console.log(err); });
+// handlers.read('playground','two',(err,data)=>{ console.log(err);  console.log(data); });
 // handlers.read('test','four',(err,data)=>{ console.log(err);  console.log(data); });
 // handlers.update('test','two',{'c':2},(err)=>{console.log(err)});
 // handlers.update('test','three',{'c':2},(err)=>{console.log(err)});

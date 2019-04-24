@@ -160,25 +160,23 @@ handlers.delete = function(collection, documentName, callback){
 }
 
 handlers.list = function(collection, callback){
-  // Get the documents collection
-  // const collectione = client.db(mongoDbName).collection(collection);
-  // // Find some documents
-  // collectione.find({},{'documentName':1}).toArray(function(error, result) {
-  //   // process the query results
-  //   if (error) {
-  //     debuglog("Failure to quiry for listing in ", collection, " in db.", error);
-  //     callback(true, "Failure to quiry for listing in " + collection + " in db.");
-  //   } else {
-  //     debuglog("Success to quiry for listing in ", collection, " in db.");
+  // Find some documents
+  client.query(`select "title" from  "${collection}"`, function(error, result) {
+    // process the query results
+    if (error) {
+      debuglog("Failure to quiry for listing in ", collection, " in db.", error);
+      callback(true, "Failure to quiry for listing in " + collection + " in db.");
+    } else {
+      debuglog("Success to quiry for listing in ", collection, " in db.");
+console.log(result);
+      let array = [];
+      if (result && result.rows.length !== 0) {
+        array = result.rows.map( element => element.title );
+      }
 
-  //     let array = [];
-  //     if (result && result.length !== 0) {
-  //       array = result.map( element => element.documentName );
-  //     }
-
-  //     callback(false, array);
-  //   }
-  // });
+      callback(false, array);
+    }
+  });
 }
 
 // Client connection close on cli exit
@@ -270,7 +268,7 @@ let timer = setInterval(() => {
                   debuglog('Orders table/collection is ready to use.');
                   handlers.createIndexedCollection('orders',()=>{});
                   // queries for manual testing may be placed here ...
-                  // handlers.delete('playground','one',(err)=>{ console.log(err); });
+                  handlers.list('users',(err,data)=>{ console.log(err); console.log(data); })
                 } else {
                   debuglog('Basic tables/collections might NOT be ready to use.');
                 }
@@ -298,5 +296,5 @@ let timer = setInterval(() => {
 // handlers.update('test','two',{'c':2},(err)=>{console.log(err)});
 // handlers.update('test','three',{'c':2},(err)=>{console.log(err)});
 // handlers.delete('test','three',(err)=>{console.log(err)});
-// handlers.list('test',(err,data)=>{ console.log(err); console.log(data); })
-// handlers.createIndexedCollection('test',(err,data)=>{ console.log(err); console.log(data); })
+// handlers.list('test',(err,data)=>{ console.log(err); console.log(data); });
+// handlers.createIndexedCollection('test',(err,data)=>{ console.log(err); console.log(data); });

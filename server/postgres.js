@@ -10,7 +10,7 @@ const postgresql = require('pg');
 // Local Dependencies
 const config = require('./config.js');
 
-const debuglog = util.debuglog('postgres');
+const debuglog = util.debuglog('postgresql');
 
 const user = encodeURIComponent(config.postgresUser);
 const password = encodeURIComponent(config.postgresPassword);
@@ -109,27 +109,22 @@ handlers.create = function(collection, documentName, documentContentObject, call
 }
 
 handlers.read = function(collection, documentName, callback){
-  // Get the documents collection
-  // const collectione = client.db(mongoDbName).collection(collection);
-  // // Find some documents
-  // collectione.find({ "documentName": documentName }).toArray(function(error, result) {
-  //   // process the query results
-  //   if (error) {
-  //     debuglog("Failed to query for reading in ", collection, " in db.");
-  //     callback(true,error);
-  //   } else if (result.length === 0) {
-  //     debuglog("Failed to read document in ", collection, " in db.");
-  //     callback(true,"Failed to read document in " + collection + " in db.");
-  //   } else {
-  //     debuglog("Success to read document in ", collection, " in db.");
+  // Find some documents
+  client.query(`select "content" from "${collection}" where "title"='${documentName}'`, function(error, result) {
+    // process the query results
+    if (error) {
+      debuglog("Failed to query for reading in ", collection, " in db.");
+      callback(true,error);
+    } else if (result.rowCount == 0) {
+      debuglog("Failed to read document in ", collection, " in db.");
+      callback(true,"Failed to read document in " + collection + " in db.");
+    } else {
+      debuglog("Success to read document in ", collection, " in db.");
 
-  //     let data = result[0];
-  //     delete data.documentName;
-  //     delete data._id;
-      
-  //     callback(false,data);
-  //   }
-  // });
+      let data = result.rows[0].content;
+      callback(false, data);
+    }
+  });
 }
 
 handlers.update = function(collection, documentName, documentContentObject, callback){
@@ -237,7 +232,7 @@ let timer = setInterval(() => {
     });
     
     // check if menu items are already loaded, load them if not
-    client.query(`SELECT COUNT(*) FROM "menu"`, (error1,result1)=>{ console.log(result1);
+    client.query(`SELECT COUNT(*) FROM "menu"`, (error1,result1)=>{
       if (error1) {
         debuglog('Error querying menu table.');
       } else {
@@ -304,9 +299,10 @@ let timer = setInterval(() => {
 }, 1000*(1/10) );
 
 // handlers.create('test','one',{"a":1,"b":2,"c":3},(err,data)=>{ console.log(err); });
-// handlers.read('test','three',(err,data)=>{ console.log(err);  console.log(data); });
+ handlers.read('playground','two',(err,data)=>{ console.log(err);  console.log(data); });
 // handlers.read('test','four',(err,data)=>{ console.log(err);  console.log(data); });
 // handlers.update('test','two',{'c':2},(err)=>{console.log(err)});
 // handlers.update('test','three',{'c':2},(err)=>{console.log(err)});
 // handlers.delete('test','three',(err)=>{console.log(err)});
 // handlers.list('test',(err,data)=>{ console.log(err); console.log(data); })
+// handlers.createIndexedCollection('test',(err,data)=>{ console.log(err); console.log(data); })

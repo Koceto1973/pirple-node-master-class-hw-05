@@ -12,7 +12,7 @@
 # export PORT=3002 || SET \"PORT=3002\"
 
 # export NODE_DEBUG=debug || SET \"NODE_DEBUG=debug\"           # use for debug logging in couple of files after amending their debuglog
- export NODE_DEBUG=postgres || SET \"NODE_DEBUG=postgres\"           # use for debug logging in single file
+ export NODE_DEBUG=postgresql || SET \"NODE_DEBUG=postgresql\"           # use for debug logging in single file
 
  node index.js          # app running
 # node test/index.js   # app testing

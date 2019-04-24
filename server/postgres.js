@@ -119,8 +119,7 @@ handlers.read = function(collection, documentName, callback){
     } else {
       debuglog("Success to read document in ", collection, " in db.");
 
-      let data = JSON.parse(result.rows[0].content);
-      callback(false, data);
+      callback(false, result.rows[0].content);
     }
   });
 }
@@ -196,7 +195,7 @@ handlers.close = function(callback){
 // Additional handlers for db set up
 handlers.createIndexedCollection = function(collection, callback){
   
-  client.query(`CREATE INDEX title_idx_${collection} ON "${collection}" ("title")`, function(error, data){
+  client.query(`CREATE INDEX if not exists title_idx_${collection} ON "${collection}" ("title")`, function(error, data){
     if (error) {
       debuglog("Failed to index ", collection, " in db.");
       callback("Failed to index " + collection + " in db.");
@@ -218,72 +217,68 @@ let timer = setInterval(() => {
       if (error) {
         debuglog(`Error on creation table menu`, error);
       } else {
-        debuglog(`Success on creation table menu`,result);
+        // check if menu items are already loaded, load them if not
+        client.query(`SELECT COUNT(*) FROM "menu"`, (error1,result1)=>{
+          if (error1) {
+            debuglog('Error querying menu table.');
+          } else {
+            if (result1 && result1.rows[0]['count'] == 0 ) { // menu table is empty
+              let _path = path.join(__dirname, '/.data/menu/menu.json');
+              let _menu = '';
+              fs.readFile(_path,'utf-8', (error2, data2)=>{
+                if (error2 || !data2) {
+                  debuglog('Error reading menu.json', error.message);
+                } else {
+                  _menu = JSON.parse(data2);
+                  const unpreparedQuery = {
+                    name: 'queryName',  // prepared queries - connected client will parse it only once and remember it for optimization
+                    text: `INSERT INTO "menu"("title", "content") VALUES($2,$2)`,
+                    values: ["menu", JSON.stringify(_menu)],
+                  };
+                  client.query(postgresql.format(unpreparedQuery), (error3, result3) => {
+                    if (error3) {
+                      debuglog('Menu is NOT loaded in the db.');
+                    } else {
+                      debuglog('Menu is loaded in the db.');
+                    }
+                  });
+                }
+              });
+            } else {
+              debuglog('Menu is already loaded in the db.');
+            }
+          }
+        });
       }
     });
-    
-    // check if menu items are already loaded, load them if not
-    client.query(`SELECT COUNT(*) FROM "menu"`, (error1,result1)=>{
-      if (error1) {
-        debuglog('Error querying menu table.');
+
+    // create basic collections/ tables users, tokens, orders
+    client.query(`CREATE TABLE if not exists "users"("title" varchar(255), "content" JSON )`, (error1, result) => {
+      if (!error1) {
+        debuglog('Users table/collection is ready to use.');
+        handlers.createIndexedCollection('users',()=>{});
+        client.query(`CREATE TABLE if not exists "tokens"("title" varchar(255), "content" JSON )`, (error2, result) => {
+          if (!error2) {
+            debuglog('Tokens table/collection is ready to use.');
+            handlers.createIndexedCollection('tokens',()=>{});
+            client.query(`CREATE TABLE if not exists "orders"("title" varchar(255), "content" JSON )`, (error3, result) => {
+              if (!error3) {
+                debuglog('Orders table/collection is ready to use.');
+                handlers.createIndexedCollection('orders',()=>{});
+                // queries for manual testing may be placed here ...
+                
+              } else {
+                debuglog('Basic tables/collections might NOT be ready to use.');
+              }
+            });
+          } else {
+            debuglog('Basic tables/collections might NOT be ready to use.');
+          }
+        });
       } else {
-        if (result1 && result1.rows[0]['count'] == 0 ) { // menu table is empty
-          let _path = path.join(__dirname, '/.data/menu/menu.json');
-          let _menu = '';
-          fs.readFile(_path,'utf-8', (error2, data2)=>{
-            if (error2 || !data2) {
-              debuglog('Error reading menu.json', error.message);
-            } else {
-              _menu = JSON.parse(data2);
-              const unpreparedQuery = {
-                name: 'queryName',  // prepared queries - connected client will parse it only once and remember it for optimization
-                text: `INSERT INTO "menu"("title", "content") VALUES($2,$2)`,
-                values: ["menu", JSON.stringify(_menu)],
-              };
-              client.query(postgresql.format(unpreparedQuery), (error3, result3) => {
-                if (error3) {
-                  debuglog('Menu is NOT loaded in the db.');
-                } else {
-                  debuglog('Menu is loaded in the db.');
-                }
-              });
-            }
-          });
-        } else {
-          debuglog('Menu is already loaded in the db.');
-        }
+        debuglog('Basic tables/collections might NOT be ready to use.');
       }
-
-      // create basic collections/ tables users, tokens, orders
-      client.query(`CREATE TABLE if not exists "users"("title" varchar(255), "content" JSON )`, (error1, result) => {
-        if (!error1) {
-          debuglog('Users table/collection is ready to use.');
-          handlers.createIndexedCollection('users',()=>{});
-          client.query(`CREATE TABLE if not exists "tokens"("title" varchar(255), "content" JSON )`, (error2, result) => {
-            if (!error2) {
-              debuglog('Tokens table/collection is ready to use.');
-              handlers.createIndexedCollection('tokens',()=>{});
-              client.query(`CREATE TABLE if not exists "orders"("title" varchar(255), "content" JSON )`, (error3, result) => {
-                if (!error3) {
-                  debuglog('Orders table/collection is ready to use.');
-                  handlers.createIndexedCollection('orders',()=>{});
-                  // queries for manual testing may be placed here ...
-                  handlers.list('users',(err,data)=>{ console.log(err); console.log(data); })
-                } else {
-                  debuglog('Basic tables/collections might NOT be ready to use.');
-                }
-              });
-            } else {
-              debuglog('Basic tables/collections might NOT be ready to use.');
-            }
-          });
-        } else {
-          debuglog('Basic tables/collections might NOT be ready to use.');
-        }
-      });
-
     });
-    
 
     // stop timer
     clearInterval(timer);

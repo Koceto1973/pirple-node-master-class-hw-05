@@ -210,7 +210,7 @@ handlers.close = function(callback){
 // Additional handlers for db set up
 handlers.createIndexedCollection = function(collection, callback){
   
-  collectione.createIndex({'documentName': 1}, function(error, data){
+  client.query(`CREATE INDEX title_idx_${collection} ON "${collection}" ("title")`, function(error, data){
     if (error) {
       debuglog("Failed to index ", collection, " in db.");
       callback("Failed to index " + collection + " in db.");
@@ -272,12 +272,15 @@ let timer = setInterval(() => {
       client.query(`CREATE TABLE if not exists "users"("title" varchar(255), "content" JSON )`, (error1, result) => {
         if (!error1) {
           debuglog('Users table/collection is ready to use.');
+          handlers.createIndexedCollection('users',()=>{});
           client.query(`CREATE TABLE if not exists "tokens"("title" varchar(255), "content" JSON )`, (error2, result) => {
             if (!error2) {
               debuglog('Tokens table/collection is ready to use.');
+              handlers.createIndexedCollection('tokens',()=>{});
               client.query(`CREATE TABLE if not exists "orders"("title" varchar(255), "content" JSON )`, (error3, result) => {
                 if (!error3) {
                   debuglog('Orders table/collection is ready to use.');
+                  handlers.createIndexedCollection('orders',()=>{});
                   // queries for manual testing may be placed here ...
                 } else {
                   debuglog('Basic tables/collections might NOT be ready to use.');

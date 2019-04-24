@@ -143,22 +143,20 @@ handlers.update = function(collection, documentName, documentContentObject, call
 }
 
 handlers.delete = function(collection, documentName, callback){
-  // Get the documents collection
-  // const collectione = client.db(mongoDbName).collection(collection);
-  // // Find some documents
-  // collectione.findOneAndDelete({ "documentName" : documentName },function(error, result) {
-  //   // process the query results
-  //   if (error) {
-  //     debuglog("Failure to quiry for deletion in ", collection, " in db.", error);
-  //     callback("Failure to quiry for deletion in " + collection + " in db.");
-  //   } else if (!result || !result.lastErrorObject.n) {
-  //     debuglog("Failure to match document for deletion in ", collection, " in db.");
-  //     callback("Failure to match document deletion in " + collection + " in db.");
-  //   } else {
-  //     debuglog("Success to match document for deletion in ", collection, " in db.");
-  //     callback(false);
-  //   }
-  // });
+  // Find some documents
+  client.query(`delete from "${collection}" where "title"='${documentName}'`,function(error, result) {
+    // process the query results
+    if (error) {
+      debuglog("Failure to quiry for deletion in ", collection, " in db.", error);
+      callback("Failure to quiry for deletion in " + collection + " in db.");
+    } else if (!result || result.rowCount == 0) {
+      debuglog("Failure to match document for deletion in ", collection, " in db.");
+      callback("Failure to match document deletion in " + collection + " in db.");
+    } else {
+      debuglog("Success to match document for deletion in ", collection, " in db.");
+      callback(false);
+    }
+  });
 }
 
 handlers.list = function(collection, callback){
@@ -272,7 +270,7 @@ let timer = setInterval(() => {
                   debuglog('Orders table/collection is ready to use.');
                   handlers.createIndexedCollection('orders',()=>{});
                   // queries for manual testing may be placed here ...
-                  // handlers.update('playground','two',{"a":4,"b":5,"c":6},(err,data)=>{ console.log(err); });
+                  // handlers.delete('playground','one',(err)=>{ console.log(err); });
                 } else {
                   debuglog('Basic tables/collections might NOT be ready to use.');
                 }

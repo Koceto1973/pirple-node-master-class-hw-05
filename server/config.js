@@ -88,7 +88,6 @@ environments.production = {
   'mysqlDbName': cnfg.mysqlDbName,
   'postgresUser': cnfg.postgresUser,
   'postgresPassword': cnfg.postgresPassword,
-  'postgresPasswordLocal': cnfg.postgresPasswordLocal,
   'postgresDbServer': cnfg.postgresDbServer,
   'postgresDbPort': cnfg.postgresDbPort,
   'postgresDbName': cnfg.postgresDbName,

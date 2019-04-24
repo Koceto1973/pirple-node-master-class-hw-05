@@ -1,5 +1,5 @@
 # export NODE_ENV=staging || SET \"NODE_ENV=staging\"
- export NODE_ENV=testing || SET \"NODE_ENV=testing\"
+# export NODE_ENV=testing || SET \"NODE_ENV=testing\"
 # export NODE_ENV=production || SET \"NODE_ENV=production\"
 
 # export NODE_STORAGE=fs || SET \"NODE_STORAGE=fs\"

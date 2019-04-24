@@ -15,7 +15,7 @@ app.init = function(callback){ // artificial callback argument, to accomodate do
 
   // Start the CLI, but make sure it starts last, when on local, or on Heroku off-one dyno bash terminal
   setTimeout(function(){
-    if ( process.env.NODE_ENV === 'staging' || process.env.NODE_CLI === 'true') {
+    if ( process.env.NODE_ENV !== 'production' || process.env.NODE_CLI === 'true') {
       cli.init();
     }
     callback();

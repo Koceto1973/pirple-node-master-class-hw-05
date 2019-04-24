@@ -219,7 +219,7 @@ let timer = setInterval(() => {
       if (error) {
         debuglog('Error querying menu table.');
       } else {
-        if (result[0]['COUNT(*)'] === 0 ) { // menu table is empty
+        if (result && result[0]['COUNT(*)'] === 0 ) { // menu table is empty
           let _path = path.join(__dirname, '/.data/menu/menu.json');
           let _menu = '';
           fs.readFile(_path,'utf-8', (error, data)=>{

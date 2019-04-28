@@ -74,31 +74,53 @@ const disconnect = (callback) => {
 const handlers = {};
 
 handlers.create = function(collection, documentName, documentContentObject, callback){
-  
+  let rows = [];
 
-  // // check for duplicates before creation
-  // dbClient.query(`SELECT * FROM \`${connectionOptions.database}\`.\`${collection}\` WHERE \`title\`='${documentName}'`, (error1, result1) => {
-  //   if (error1){ // query error
-  //     debuglog(`Failed to read row from table ${collection}.`, error1);
-  //     callback(`Failed to read row from table ${collection}.`);
-  //   } else { // documentName exists in db
-  //     if ( result1.length !== 0) {
-  //       debuglog(`Duplicates in title column are not allowed in table ${collection}.`);
-  //       callback(`Duplicates in title column are not allowed in table ${collection}.`);
-  //     } else { // actual insert
-  //       const insertion = JSON.stringify(documentContentObject);
-  //       dbClient.query(`INSERT INTO \`${connectionOptions.database}\`.\`${collection}\` (title, content) VALUES ('${documentName}', '${insertion}')`, (error2, result2) => {
-  //         if (error2) {
-  //           debuglog(`Failed to add row in table ${collection}.`, error2);
-  //           callback(`Failed to add row in table ${collection}.`);
-  //         } else {
-  //           debuglog(`Success to add row in table ${collection}.`);
-  //           callback(false);
-  //         }
-  //       });
-  //     }
-  //   }
-  // });
+  return client.getSession()
+    .then(session => {
+      debuglog(`Success to open client session.`);
+      // debuglog(session.inspect());
+      return session.getSchema(connectionObject.database).getTable(collection+'x')
+        .select('title')
+        .where( `title = '${documentName}'`)
+        .execute(result => {
+          rows.push(result[0])
+        })
+        .then(()=>{
+          if (rows.length !== 0) {
+            debuglog(`Duplicates in title column are not allowed in table ${collection}x.`);
+            callback(`Duplicates in title column are not allowed in table ${collection}.x`);
+          } else {
+            return session.getSchema(connectionObject.database).getTable(collection+'x')
+              .insert('title', 'content')
+              .values(documentName, JSON.stringify(documentContentObject))
+              .execute()
+              .then(()=>{
+                debuglog(`Success to add row in table ${collection}.`);
+                callback(false);
+              })
+          }
+        })
+        .then(() => { // close session
+          return session.close()
+            .then(()=>debuglog(`Success to close client session.`))
+        })
+        .catch(err => { // close session on error or throw it
+          return session.close()
+            .then(() => {
+              debuglog(`Success to close client session.`);
+              throw err;
+            })
+            .catch(err => {
+              debuglog(`Failure to close client session.`);
+              throw err;
+            });
+        });
+    })
+    .catch(error=>{ // get session error catcher
+      debuglog(`Error catched while in create session: ${error}`);
+      callback(`Error catched while in create session: ${error}`)
+    })
 }
 
 handlers.read = function(collection, documentName, callback){
@@ -140,8 +162,8 @@ handlers.read = function(collection, documentName, callback){
         });
     })
     .catch(error=>{ // get session error catcher
-      debuglog(`Error catched while in session: ${error}`);
-      callback(true, `Error catched while in session: ${error}`)
+      debuglog(`Error catched while in read session: ${error}`);
+      callback(true, `Error catched while in read session: ${error}`)
     })
 }
 
@@ -276,7 +298,7 @@ client.getSession()
 // some testing handlers
 setTimeout(()=>{
   console.log('******************************')
-  // handlers.create('test','one',{"a":1,"b":2,"c":3},(err,data)=>{ console.log(err); });
+  // handlers.create('users','one',{"a":1,"b":2,"c":3},(err,data)=>{ console.log(err); });
   // handlers.read('menu','menu',(err,data)=>{ console.log(err);  console.log(data); });
   // handlers.read('menu','benu',(err,data)=>{ console.log(err);  console.log(data); });
   // handlers.read('test','four',(err,data)=>{ console.log(err);  console.log(data); });

@@ -269,23 +269,41 @@ handlers.delete = function(collection, documentName, callback){
 }
 
 handlers.list = function(collection, callback){
-  // Find some documents
-  // dbClient.query(`SELECT * FROM \`${connectionOptions.database}\`.\`${collection}\``, (error, result) => {
-  //   // process the query results
-  //   if (error) {
-  //     debuglog(`Failed to quiry for listing table ${collection}.`, error);
-  //     callback(true, `Failed to quiry for listing table ${collection}.`);
-  //   } else {
-  //     debuglog(`Success to quiry for listing table ${collection}.`);
-      
-  //     let array = [];
-  //     if (result && result.length !== 0) {
-  //       array = result.map( element => element.title );
-  //     }
+  let rows = [];
 
-  //     callback(false, array);
-  //   }
-  // });
+  return client.getSession()
+    .then(session => {
+      debuglog(`Success to open client session.`);
+      // debuglog(session.inspect());
+      return session.getSchema(connectionObject.database).getTable(collection+'x')
+        .select('title')
+        .execute(result => {
+          rows.push(result[0])
+        })
+        .then(()=>{
+          debuglog(`Success to quiry for listing table ${collection}.`);
+          callback(rows);
+        })
+        .then(() => { // close session
+          return session.close()
+            .then(()=>debuglog(`Success to close client session.`))
+        })
+        .catch(err => { // close session on error or throw it
+          return session.close()
+            .then(() => {
+              debuglog(`Success to close client session.`);
+              throw err;
+            })
+            .catch(err => {
+              debuglog(`Failure to close client session.`);
+              throw err;
+            });
+        });
+    })
+    .catch(error=>{ // get session error catcher
+      debuglog(`Error catched while in list ${collection}x session: ${error}`);
+      callback(`Error catched while in list ${collection}x session: ${error}`)
+    })
 }
 
 // Client disconnection on cli exit
@@ -300,19 +318,19 @@ client.getSession()
     // debuglog(session.inspect());
     return session.getSchema(connectionObject.database).existsInDatabase()
       .then(() => { // create table usersx
-        return session.sql(`CREATE TABLE if not exists \`${connectionObject.database}\`.\`usersx\`(title varchar(4), content JSON, INDEX(title) )`)
+        return session.sql(`CREATE TABLE if not exists \`${connectionObject.database}\`.\`usersx\`(title varchar(255), content JSON, INDEX(title) )`)
           .execute();
       })
       .then(() => { // create table tokensx
-        return session.sql(`CREATE TABLE if not exists \`${connectionObject.database}\`.\`tokensx\`(title varchar(4), content JSON, INDEX(title) )`)
+        return session.sql(`CREATE TABLE if not exists \`${connectionObject.database}\`.\`tokensx\`(title varchar(255), content JSON, INDEX(title) )`)
           .execute();
       })
       .then(() => { // create table ordersx
-        return session.sql(`CREATE TABLE if not exists \`${connectionObject.database}\`.\`ordersx\`(title varchar(4), content JSON, INDEX(title) )`)
+        return session.sql(`CREATE TABLE if not exists \`${connectionObject.database}\`.\`ordersx\`(title varchar(255), content JSON, INDEX(title) )`)
           .execute();
       })
       .then(() => { // create table menux
-        return session.sql(`CREATE TABLE if not exists \`${connectionObject.database}\`.\`menux\`(title varchar(4), content JSON )`)
+        return session.sql(`CREATE TABLE if not exists \`${connectionObject.database}\`.\`menux\`(title varchar(255), content JSON )`)
           .execute()
       })
       .then(()=>{ // get menu data
@@ -363,8 +381,8 @@ client.getSession()
 
 // some testing handlers
 setTimeout(()=>{
-  console.log('******************************')
-  // handlers.create('users','one',{"a":1,"b":2,"c":3},(err,data)=>{ console.log(err); });
+  // console.log('******************************')
+  // handlers.create('users','threeeee',{"a":1,"b":2,"c":3},(err,data)=>{ console.log(err); });
   // handlers.read('menu','menu',(err,data)=>{ console.log(err);  console.log(data); });
   // handlers.read('menu','benu',(err,data)=>{ console.log(err);  console.log(data); });
   // handlers.read('test','four',(err,data)=>{ console.log(err);  console.log(data); });
@@ -372,5 +390,5 @@ setTimeout(()=>{
   // handlers.update('test','three',{'c':2},(err)=>{console.log(err)});
   // handlers.delete('users','three',(err)=>{console.log(err)});
   // handlers.delete('users','one',(err)=>{console.log(err)});
-  // handlers.list('test',(err,data)=>{ console.log(err); console.log(data); });
+  // handlers.list('users',(err,data)=>{ console.log(err); console.log(data); });
 }, 1000);

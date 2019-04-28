@@ -219,20 +219,53 @@ handlers.update = function(collection, documentName, documentContentObject, call
 }
 
 handlers.delete = function(collection, documentName, callback){
-  // Find some documents
-  // dbClient.query(`DELETE FROM \`${connectionOptions.database}\`.\`${collection}\` WHERE \`title\`='${documentName}'`,function(error, result) {
-  //   // process the query results
-  //   if (error) {
-  //     debuglog(`Failed to query row for deletion from table ${collection}.`, error);
-  //     callback(`Failed to query row for deletion from table ${collection}.`);
-  //   } else if (result.affectedRows === 0) {
-  //     debuglog(`Failed to match row for deletion from table ${collection}.`);
-  //     callback(`Failed to match row for deletion from table ${collection}.`);
-  //   } else {
-  //     debuglog(`Success to delete row from table ${collection}.`);
-  //     callback(false);
-  //   }
-  // });
+  let rows = [];
+
+  return client.getSession()
+    .then(session => {
+      debuglog(`Success to open client session.`);
+      // debuglog(session.inspect());
+      return session.getSchema(connectionObject.database).getTable(collection+'x')
+        .select('content')
+        .where( `title = '${documentName}'`)
+        .execute(result => {
+          rows.push(result[0])
+        })
+        .then(()=>{
+          if (rows.length === 0) {
+            debuglog(`Failed to match row for delete in table ${collection}.`);
+            callback(true, `Failed to match row for delete in table ${collection}.`);
+          } else {
+            return session.getSchema(connectionObject.database).getTable(collection+'x')
+              .delete()
+              .where(`title = '${documentName}'`)
+              .execute()
+              .then(()=>{
+                debuglog(`Success to match row for delete in table ${collection}.`);
+                callback(false);
+              })
+          }
+        })
+        .then(() => { // close session
+          return session.close()
+            .then(()=>debuglog(`Success to close client session.`))
+        })
+        .catch(err => { // close session on error or throw it
+          return session.close()
+            .then(() => {
+              debuglog(`Success to close client session.`);
+              throw err;
+            })
+            .catch(err => {
+              debuglog(`Failure to close client session.`);
+              throw err;
+            });
+        });
+    })
+    .catch(error=>{ // get session error catcher
+      debuglog(`Error catched while in delete ${collection}x session: ${error}`);
+      callback(`Error catched while in delete ${collection}x session: ${error}`)
+    })
 }
 
 handlers.list = function(collection, callback){
@@ -337,6 +370,7 @@ setTimeout(()=>{
   // handlers.read('test','four',(err,data)=>{ console.log(err);  console.log(data); });
   // handlers.update('users','one',{'c':2},(err)=>{console.log(err)});
   // handlers.update('test','three',{'c':2},(err)=>{console.log(err)});
-  // handlers.delete('test','three',(err)=>{console.log(err)});
+  // handlers.delete('users','three',(err)=>{console.log(err)});
+  // handlers.delete('users','one',(err)=>{console.log(err)});
   // handlers.list('test',(err,data)=>{ console.log(err); console.log(data); });
 }, 1000);

@@ -118,8 +118,8 @@ handlers.create = function(collection, documentName, documentContentObject, call
         });
     })
     .catch(error=>{ // get session error catcher
-      debuglog(`Error catched while in create session: ${error}`);
-      callback(`Error catched while in create session: ${error}`)
+      debuglog(`Error catched while in create ${collection}x session: ${error}`);
+      callback(`Error catched while in create ${collection}x session: ${error}`)
     })
 }
 
@@ -138,8 +138,8 @@ handlers.read = function(collection, documentName, callback){
         })
         .then(()=>{
           if (rows.length === 0) {
-            debuglog(`Failed to match while querying database.`);
-            callback(true, `Failed to match while querying database.`);
+            debuglog(`Failed to match row for read in table ${collection}.`);
+            callback(true, `Failed to match row for read in table ${collection}.`);
           } else {
             debuglog(`Success to match while querying database.`);
             callback(false, rows[0]);
@@ -162,27 +162,60 @@ handlers.read = function(collection, documentName, callback){
         });
     })
     .catch(error=>{ // get session error catcher
-      debuglog(`Error catched while in read session: ${error}`);
-      callback(true, `Error catched while in read session: ${error}`)
+      debuglog(`Error catched while in read ${collection}x session: ${error}`);
+      callback(true, `Error catched while in read ${collection}x session: ${error}`)
     })
 }
 
 handlers.update = function(collection, documentName, documentContentObject, callback){
-  // const updated = JSON.stringify(documentContentObject);
-  // // Find some documents
-  // dbClient.query(`UPDATE \`${connectionOptions.database}\`.\`${collection}\` SET \`content\`='${updated}' WHERE \`title\`='${documentName}'`, (error, result) => {
-  //   // process the query results
-  //   if (error) {
-  //     debuglog(`Failed to update row in table ${collection}.`, error);
-  //     callback(`Failed to add row in table ${collection}.`);
-  //   } else if (result && result.changedRows === 0) {
-  //     debuglog(`Failed to update row in table ${collection}.`);
-  //     callback(`Failed to update row in table ${collection}.`);
-  //   } else {
-  //     debuglog(`Success to update row in table ${collection}.`);
-  //     callback(false);
-  //   }
-  // });
+  let rows = [];
+
+  return client.getSession()
+    .then(session => {
+      debuglog(`Success to open client session.`);
+      // debuglog(session.inspect());
+      return session.getSchema(connectionObject.database).getTable(collection+'x')
+        .select('content')
+        .where( `title = '${documentName}'`)
+        .execute(result => {
+          rows.push(result[0])
+        })
+        .then(()=>{
+          if (rows.length === 0) {
+            debuglog(`Failed to match row for update in table ${collection}.`);
+            callback(true, `Failed to match row for update in table ${collection}.`);
+          } else {
+            return session.getSchema(connectionObject.database).getTable(collection+'x')
+              .update()
+              .where(`title = '${documentName}'`)
+              .set('content', JSON.stringify(documentContentObject))
+              .execute()
+              .then(()=>{
+                debuglog(`Success to match row for update in table ${collection}.`);
+                callback(false);
+              })
+          }
+        })
+        .then(() => { // close session
+          return session.close()
+            .then(()=>debuglog(`Success to close client session.`))
+        })
+        .catch(err => { // close session on error or throw it
+          return session.close()
+            .then(() => {
+              debuglog(`Success to close client session.`);
+              throw err;
+            })
+            .catch(err => {
+              debuglog(`Failure to close client session.`);
+              throw err;
+            });
+        });
+    })
+    .catch(error=>{ // get session error catcher
+      debuglog(`Error catched while in update ${collection}x session: ${error}`);
+      callback(`Error catched while in update ${collection}x session: ${error}`)
+    })
 }
 
 handlers.delete = function(collection, documentName, callback){
@@ -302,7 +335,7 @@ setTimeout(()=>{
   // handlers.read('menu','menu',(err,data)=>{ console.log(err);  console.log(data); });
   // handlers.read('menu','benu',(err,data)=>{ console.log(err);  console.log(data); });
   // handlers.read('test','four',(err,data)=>{ console.log(err);  console.log(data); });
-  // handlers.update('test','two',{'c':2},(err)=>{console.log(err)});
+  // handlers.update('users','one',{'c':2},(err)=>{console.log(err)});
   // handlers.update('test','three',{'c':2},(err)=>{console.log(err)});
   // handlers.delete('test','three',(err)=>{console.log(err)});
   // handlers.list('test',(err,data)=>{ console.log(err); console.log(data); });

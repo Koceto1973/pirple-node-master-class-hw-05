@@ -174,71 +174,73 @@ handlers.close = disconnect;
 
 module.exports = handlers;
 
-// Client connection and loading of the collections
+// Client connection and loading of the basic collections
 client.getSession()
   .then(session => {
     debuglog(`Success to open client session.`);
     // debuglog(session.inspect());
-
-    
+    return session.getSchema(connectionObject.database).existsInDatabase()
+      .then(() => { // create table usersx
+        return session.sql(`CREATE TABLE if not exists \`${connectionObject.database}\`.\`usersx\`(title varchar(4), content JSON, INDEX(title) )`)
+          .execute();
+      })
+      .then(() => { // create table tokensx
+        return session.sql(`CREATE TABLE if not exists \`${connectionObject.database}\`.\`tokensx\`(title varchar(4), content JSON, INDEX(title) )`)
+          .execute();
+      })
+      .then(() => { // create table ordersx
+        return session.sql(`CREATE TABLE if not exists \`${connectionObject.database}\`.\`ordersx\`(title varchar(4), content JSON, INDEX(title) )`)
+          .execute();
+      })
+      .then(() => { // create table menux
+        return session.sql(`CREATE TABLE if not exists \`${connectionObject.database}\`.\`menux\`(title varchar(4), content JSON )`)
+          .execute()
+      })
+      .then(()=>{ // get menu data
+        let _path = path.join(__dirname, '/.data/menu/menu.json');
+        let data = fs.readFileSync(_path,'utf-8');
+        if ( data instanceof Error ) {
+          return Promise.reject(`Can't read /.data/menu/menu.json.`)
+        } else {
+          return Promise.resolve(JSON.parse(data))
+        }
+      })
+      .then(menuData => { // store menu data in table menux if not loaded
+        return session.getSchema(connectionObject.database).getTable('menux').count()
+          .then(number => {
+            if (number) { 
+              return Promise.resolve()
+            } else {
+              return session.sql(`INSERT INTO \`${connectionObject.database}\`.\`menux\`(title, content) VALUES("menu",?)`)
+                .bind(JSON.stringify(menuData))
+                .execute()
+            }
+          })
+      })
+      .then(() => { // report results
+        return Promise.resolve(`Basic tables ready to use in the database.`)
+          .then((value)=>{
+            debuglog(value);
+          })
+      })
+      .then(() => { // close session
+        return session.close()
+          .then(()=>debuglog(`Success to close client session.`))
+      })
+      .catch(err => { // close session on error or throw it
+        return session.close()
+          .then(() => {
+            debuglog(`Success to close client session.`);
+            throw err;
+          })
+          .catch(err => {
+            throw err;
+          });
+      });
   })
-  .catch(error=>{
-    debuglog(`Session failure: ${error}`);
+  .catch(error=>{ // get session error catcher
+    debuglog(`Error catched while in session: ${error}`);
   })
-
-//     // load the menu db table
-//     dbSingleQuery(`CREATE TABLE if not exists \`${connectionOptions.database}\`.\`menu\`(title varchar(4), content JSON, INDEX(title) )`);
-    
-//     // check if menu items are already loaded, load them if not
-//     dbClient.query(`SELECT COUNT(*) FROM \`${connectionOptions.database}\`.\`menu\``, (error,result)=>{
-//       if (error) {
-//         debuglog('Error querying menu table.');
-//       } else {
-//         if (result[0]['COUNT(*)'] === 0 ) { // menu table is empty
-//           let _path = path.join(__dirname, '/.data/menu/menu.json');
-//           let _menu = '';
-//           fs.readFile(_path,'utf-8', (error, data)=>{
-//             if (error || !data) {
-//               debuglog('Error reading menu.json', error.message);
-//             } else {
-//               _menu = JSON.parse(data);
-//               dbClient.query(mysql.format(`INSERT INTO \`${connectionOptions.database}\`.\`menu\`(title, content) VALUES("menu",?)`, JSON.stringify(_menu)), (error, result) => {
-//                 if (error) {
-//                   debuglog('Menu is NOT loaded in the db.');
-//                 } else {
-//                   debuglog('Menu is loaded in the db.');
-//                 }
-//               });
-//             }
-//           });
-//         } else {
-//           debuglog('Menu is already loaded in the db.');
-//         }
-//       }
-
-//       // create basic collections/ tables users, tokens, orders
-//       dbClient.query(`CREATE TABLE if not exists \`${connectionOptions.database}\`.\`users\`(title varchar(255), content JSON, INDEX(title) )`, (error1, result) => {
-//         if (!error1) {
-//           debuglog('Users table/collection is ready to use.');
-//           dbClient.query(`CREATE TABLE if not exists \`${connectionOptions.database}\`.\`tokens\`(title varchar(255), content JSON, INDEX( title) )`, (error2, result) => {
-//             if (!error2) {
-//               debuglog('Tokens table/collection is ready to use.');
-//               dbClient.query(`CREATE TABLE if not exists \`${connectionOptions.database}\`.\`orders\`(title varchar(255), content JSON, INDEX(title) )`, (error3, result) => {
-//                 if (!error3) {
-//                   debuglog('Orders table/collection is ready to use.');
-//                   // queries for manual testing may be placed here ...
-//                 } else {
-//                   debuglog('Basic tables/collections might NOT be ready to use.');
-//                 }
-//               });
-//             } else {
-//               debuglog('Basic tables/collections might NOT be ready to use.');
-//             }
-//           });
-//         } else {
-//           debuglog('Basic tables/collections might NOT be ready to use.');
-//         }
-//       });
 
 // some testing handlers
 // handlers.create('test','one',{"a":1,"b":2,"c":3},(err,data)=>{ console.log(err); });

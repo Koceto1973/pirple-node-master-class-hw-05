@@ -73,7 +73,9 @@ const disconnect = (callback) => {
 
 const handlers = {};
 
-handlers.create = function(collection, documentName, documentContentObject, callback){ 
+handlers.create = function(collection, documentName, documentContentObject, callback){
+  
+
   // // check for duplicates before creation
   // dbClient.query(`SELECT * FROM \`${connectionOptions.database}\`.\`${collection}\` WHERE \`title\`='${documentName}'`, (error1, result1) => {
   //   if (error1){ // query error
@@ -100,18 +102,47 @@ handlers.create = function(collection, documentName, documentContentObject, call
 }
 
 handlers.read = function(collection, documentName, callback){
-  // dbClient.query(`SELECT * FROM \`${connectionOptions.database}\`.\`${collection}\` WHERE \`title\`='${documentName}'`, (error, result) => {
-  //   if (error) {
-  //     debuglog(`Failed to obtain results from quering table ${collection}.`, error);
-  //     callback(true, {'Note':error.message});
-  //   } else if (result.length === 0) {
-  //     debuglog(`No results from quering table ${collection}.`);
-  //     callback(true,`No results from quering table ${collection}.`);
-  //   } else {
-  //     debuglog(`Success to obtain results from quering table ${collection}.`);
-  //     callback(false,JSON.parse(result[0].content));
-  //   }
-  // })
+  let rows = [];
+
+  return client.getSession()
+    .then(session => {
+      debuglog(`Success to open client session.`);
+      // debuglog(session.inspect());
+      return session.getSchema(connectionObject.database).getTable(collection+'x')
+        .select('content')
+        .where( `title = '${documentName}'`)
+        .execute(result => {
+          rows.push(result[0])
+        })
+        .then(()=>{
+          if (rows.length === 0) {
+            debuglog(`Failed to match while querying database.`);
+            callback(true, `Failed to match while querying database.`);
+          } else {
+            debuglog(`Success to match while querying database.`);
+            callback(false, rows[0]);
+          }
+        })
+        .then(() => { // close session
+          return session.close()
+            .then(()=>debuglog(`Success to close client session.`))
+        })
+        .catch(err => { // close session on error or throw it
+          return session.close()
+            .then(() => {
+              debuglog(`Success to close client session.`);
+              throw err;
+            })
+            .catch(err => {
+              debuglog(`Failure to close client session.`);
+              throw err;
+            });
+        });
+    })
+    .catch(error=>{ // get session error catcher
+      debuglog(`Error catched while in session: ${error}`);
+      callback(true, `Error catched while in session: ${error}`)
+    })
 }
 
 handlers.update = function(collection, documentName, documentContentObject, callback){
@@ -243,10 +274,14 @@ client.getSession()
   })
 
 // some testing handlers
-// handlers.create('test','one',{"a":1,"b":2,"c":3},(err,data)=>{ console.log(err); });
-// handlers.read('menu','menu',(err,data)=>{ console.log(err);  console.log(data); });
-// handlers.read('test','four',(err,data)=>{ console.log(err);  console.log(data); });
-// handlers.update('test','two',{'c':2},(err)=>{console.log(err)});
-// handlers.update('test','three',{'c':2},(err)=>{console.log(err)});
-// handlers.delete('test','three',(err)=>{console.log(err)});
-// handlers.list('test',(err,data)=>{ console.log(err); console.log(data); });
+setTimeout(()=>{
+  console.log('******************************')
+  // handlers.create('test','one',{"a":1,"b":2,"c":3},(err,data)=>{ console.log(err); });
+  // handlers.read('menu','menu',(err,data)=>{ console.log(err);  console.log(data); });
+  // handlers.read('menu','benu',(err,data)=>{ console.log(err);  console.log(data); });
+  // handlers.read('test','four',(err,data)=>{ console.log(err);  console.log(data); });
+  // handlers.update('test','two',{'c':2},(err)=>{console.log(err)});
+  // handlers.update('test','three',{'c':2},(err)=>{console.log(err)});
+  // handlers.delete('test','three',(err)=>{console.log(err)});
+  // handlers.list('test',(err,data)=>{ console.log(err); console.log(data); });
+}, 1000);

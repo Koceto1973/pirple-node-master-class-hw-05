@@ -13,11 +13,13 @@ const debuglog = util.debuglog('handlers');
 var handlers = {};
 
 handlers.ping = function(data,callback){
+  debuglog(`Ping route ok.`);
   callback(200);
 };
 
 // Not-Found
 handlers.notFound = function(data,callback){
+  debuglog(`NotFound route ok.`);
   callback(404);
 };
 
@@ -34,16 +36,20 @@ handlers.template = function(data,callback){ // callback(200,str,'html')
         helpers.addUniversalTemplates(str, templateData, function(err,str){
           if(!err && str){
             // Return that page as HTML
+            debuglog(`HTML serving route ok.`);
             callback(200,str,'html');
           } else { // can not get header and footer templates
+            debuglog(`HTML serving route failure, can not get header/ footer templates.`);
             callback(500,undefined,'html');
           }
         });
       } else { // can not get the template file
+        debuglog(`HTML serving route failed, can not get template file.`);
         callback(500,undefined,'html');
       }
     });
   } else { // method other than get
+    debuglog(`HTML serving route failed, non-get method.`);
     callback(405,undefined,'html');
   }
 };
@@ -69,15 +75,19 @@ handlers.static = function(data,callback){ // callback(200,data,contentType);
           if(trimmedAssetName.indexOf('.ico') > -1){ contentType = 'favicon'; }
 
           // Callback the data
+          debuglog(`${contentType} static asset serving route ok.`);
           callback(200,data,contentType);
         } else { // cant getStaticAsset()
+          debuglog(`${contentType} static asset serving route failure, can not get it.`);
           callback(404);
         }
       });
     } else { // missing asset file name
+      debuglog(`${contentType} static asset serving route failure, missing asset file name.`);
       callback(404);
     }
   } else { // not a get request
+    debuglog(`${contentType} static asset serving route failure, non-get request.`);
     callback(405);
   }
 };
@@ -88,6 +98,7 @@ handlers.users = function(data,callback){ // from data.method desides which of h
   if(acceptableMethods.indexOf(data.method) > -1){
     handlers._users[data.method](data,callback);
   } else {
+    debuglog(`users method not accepted.`);
     callback(405);
   }
 };
@@ -116,39 +127,46 @@ handlers._users.post = function(data,callback){ // callback(200)
           var userObject = {
             'name' : name,
             'email' : email,
-            'code': helpers.createRandomString(4),
+            'code': config.envName !== 'testing' ? helpers.createRandomString(4) : '00000', // dummy code 00000 for test cases
             'address' : address,
             'hashedPassword' : hashedPassword
           };
 
-          // Store the user
+          // Store the user and notify the email for its account confirmation code
           _data.create('users',email,userObject,function(err){
             if(!err){
-              // send code to the email, for confirmation
-              helpers.createMailgunNotification(email, `Your Swifty Tasty Pizza account code for email confirmation: ${userObject.code}.`, (error, message)=>{
-                if (error) {
-                  debuglog(`Failed to send account confirmation code to ${email}.`);
-                  // notify admin by email
-                  helpers.createMailgunNotification('teamk.developers@gmail.com',`Failed to send account confirmation code to ${email}.`,()=>{});
-                }
-              });
-
+              // do not send dummy code 00000 to testing email
+              if (config.envName !== 'testing') {
+                // send code to the email, for confirmation
+                helpers.createMailgunNotification(email, `Your Swifty Tasty Pizza account code for email confirmation: ${userObject.code}.`, (error, message)=>{
+                  if (error) {
+                    debuglog(`Failed to send account confirmation code to ${email}.`);
+                    // notify admin by email
+                    helpers.createMailgunNotification('teamk.developers@gmail.com',`Failed to send account confirmation code to ${email}.`,()=>{});
+                  }
+                });
+              }
+              debuglog(`users.post route ok.`);
               callback(200);
             } else {
+              debuglog(`users.post route failure, could not create the new user.`);
               callback(500,{'Error' : 'Could not create the new user'});
             }
           });
         } else {
+          debuglog(`users.post route failure, unable to hash the user's password.`);
           callback(500,{'Error' : 'Could not hash the user\'s password.'});
         }
 
       } else {
         // User alread exists
+        debuglog(`users.post route failure, user already exists.`);
         callback(400,{'Error' : 'A user with that email already exists'});
       }
     });
 
   } else {
+    debuglog(`users.post route failure, missing required fields.`);
     callback(400,{'Error' : 'Missing required fields'});
   }
 
@@ -336,7 +354,7 @@ handlers._confirmations.post = function(data,callback){ // callback(200)
     _data.read('users',email,function(err,data){
       if(!err && data){
         // check the password
-        if(helpers.hash(password) === data.hashedPassword){
+        if(helpers.hash(password) === data.hashedPassword && code === data.code){
           data.code = 'confirmed';
           _data.update('users',email,data,function(error){
             if (!error) {
@@ -384,7 +402,7 @@ handlers._tokens.post = function(data,callback){ // callback(200,tokenObject);
       if(!err && userData ){
         // Hash the sent password, and compare it to the password stored in the user object
         var hashedPassword = helpers.hash(password);
-        if(hashedPassword == userData.hashedPassword && userData.code === 'confirmed'){
+        if(hashedPassword == userData.hashedPassword && userData.code.length !== 4){ // valid password and code 'confirmed' or '00000' for bulk api testing
           // If valid, create a new token with a random name. Set an expiration date 1 hour in the future.
           var tokenId = helpers.createRandomString(20);
           var expires = Date.now() + 1000 * 60 * 60;

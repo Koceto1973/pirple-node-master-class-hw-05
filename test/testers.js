@@ -9,7 +9,7 @@ var app = require('../index'); // required without app.init() invokation
 
 const helpers = {};
 
-helpers.app = function(_name,done){
+helpers.app = function(_name, done){
   assert.doesNotThrow(function(){
     app.init(function(){
       done();
@@ -65,7 +65,7 @@ helpers.createHttpsRequest = function(method,path,headers,queries,body,callback)
   req.end();
 };
 
-helpers.ping = function(_name,  done){
+helpers.ping = function(_name, done){
   helpers.createHttpsRequest('GET','/ping',{},{},{},(err,payloadData)=>{
     assert.equal(err,false);
     assert.deepEqual(payloadData,{});
@@ -332,7 +332,7 @@ helpers.ordersCRUD = function(name, done){
               },{},(err,payloadData)=>{
                 assert.equal(err,false);
                 assert.deepEqual(payloadData,{
-                  "Success": "Check your email for payment details"
+                  "Success": "Check your email for details"
               });
 
                 // order delete

@@ -55,7 +55,7 @@ _app.runSubTests = function(index){
   console.log('Testing group:', _app.groupTestsNamesArray[index]);  
   let storageRedirector = '';
   switch (_app.groupTestsNamesArray[index]) {
-    case 'apiFS': storageRedirector = 'fs'; break;
+    case 'apiFs': storageRedirector = 'fs'; break;
     case 'apiMongoNative': storageRedirector = 'mongo-native'; break;
     case 'apiMongoMongoose': storageRedirector = 'mongo-mongoose'; break;
     case 'apiMySQL': storageRedirector = 'mysql'; break;

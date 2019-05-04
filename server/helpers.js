@@ -159,7 +159,7 @@ helpers.calculatePaymentAmount = function(order){
 };
 
 // email notification on completed pizza order payment
-helpers.createMailgunNotification = function(email, notification, callback){
+helpers.createMailgunNotification = function(email, notification = "Check your email for payment details", callback){
   var requestOptions = {
     "protocol": "https:",
     "method": "POST",
@@ -185,9 +185,9 @@ helpers.createMailgunNotification = function(email, notification, callback){
       var status =  res.statusCode;
       // Callback successfully if the request went through
       if(status == 200 || status == 201){
-        callback(false,{'Success':"Check your email for payment details"});
+        callback(false,{'Success': notification});
       } else {
-        callback(status,{'Error':'Failed to send email notification for your payment'});
+        callback(status,{'Error':`Failed to send email: ${notification}.`});
       }
     });    
   });

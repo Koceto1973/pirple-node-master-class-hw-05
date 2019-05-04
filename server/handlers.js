@@ -95,7 +95,6 @@ handlers.users = function(data,callback){ // from data.method desides which of h
 // Container for all the users methods
 handlers._users  = {};
 
-// Users - post
 // Required data: name, email, address, password
 // Optional data: none
 handlers._users.post = function(data,callback){ // callback(200)
@@ -117,6 +116,7 @@ handlers._users.post = function(data,callback){ // callback(200)
           var userObject = {
             'name' : name,
             'email' : email,
+            'code': helpers.createRandomString(4),
             'address' : address,
             'hashedPassword' : hashedPassword
           };
@@ -124,6 +124,15 @@ handlers._users.post = function(data,callback){ // callback(200)
           // Store the user
           _data.create('users',email,userObject,function(err){
             if(!err){
+              // send code to the email, for confirmation
+              helpers.createMailgunNotification(email, `Your Swifty Tasty Pizza account code for email confirmation: ${userObject.code}.`, (error, message)=>{
+                if (error) {
+                  debuglog(`Failed to send account confirmation code to ${email}.`);
+                  // notify admin by email
+                  helpers.createMailgunNotification('teamk.developers@gmail.com',`Failed to send account confirmation code to ${email}.`,()=>{});
+                }
+              });
+
               callback(200);
             } else {
               callback(500,{'Error' : 'Could not create the new user'});
@@ -161,8 +170,9 @@ handlers._users.get = function(data,callback){ // callback(200, userdata without
         // Lookup the user
         _data.read('users',email,function(err,data){
           if(!err && data){
-            // Remove the hashed password from the user object (just not to be shown in response) before returning it to the requester
+            // Remove the hashed password and code from the user object (just not to be shown in response) before returning it to the requester
             delete data.hashedPassword;
+            delete data.code;
             callback(200,data);
           } else {
             callback(404);
@@ -299,6 +309,56 @@ handlers._users.delete = function(data,callback){ // callback(200);
   }
 };
 
+// Confirmations
+handlers.confirmations = function(data,callback){
+  var acceptableMethods = ['post'];
+  if(acceptableMethods.indexOf(data.method) > -1){
+    handlers._confirmations[data.method](data,callback);
+  } else {
+    callback(405);
+  }
+};
+
+// Container for all the payments methods
+handlers._confirmations = {};
+
+// User account email confirmation
+// Required data: email, code, password
+// Optional data: none
+handlers._confirmations.post = function(data,callback){ // callback(200)
+  // Check that all required fields are filled out
+  var email = typeof(data.payload.email) == 'string' && data.payload.email.trim().length > 5 ? data.payload.email.trim() : false;
+  var code = typeof(data.payload.code) == 'string' && data.payload.code.trim().length === 4 ? data.payload.code.trim() : false;
+  var password = typeof(data.payload.password) == 'string' && data.payload.password.trim().length > 0 ? data.payload.password.trim() : false;
+  
+  if( email && code && password ){
+    // Make sure the user doesnt already exist
+    _data.read('users',email,function(err,data){
+      if(!err && data){
+        // check the password
+        if(helpers.hash(password) === data.hashedPassword){
+          data.code = 'confirmed';
+          _data.update('users',email,data,function(error){
+            if (!error) {
+              callback(200);
+            } else {
+              callback(500);
+            }
+          })
+        } else {
+          callback(500,{'Error' : `Email\ password\ account confirmation code mismatch.`});
+        }
+      } else {
+        // User not found in storage
+        callback(400,{'Error' : `User's account not found.`});
+      }
+    });
+  } else {
+    callback(400,{'Error' : 'Missing or bad formatted required fields'});
+  }
+
+};
+
 // Tokens
 handlers.tokens = function(data,callback){ // from data.method desides which of handlers._tokens(data, callback) to run
   var acceptableMethods = ['post','get','put','delete'];
@@ -321,10 +381,10 @@ handlers._tokens.post = function(data,callback){ // callback(200,tokenObject);
   if(email && password){
     // Lookup the user who matches that email
     _data.read('users',email,function(err,userData){
-      if(!err && userData){
+      if(!err && userData ){
         // Hash the sent password, and compare it to the password stored in the user object
         var hashedPassword = helpers.hash(password);
-        if(hashedPassword == userData.hashedPassword){
+        if(hashedPassword == userData.hashedPassword && userData.code === 'confirmed'){
           // If valid, create a new token with a random name. Set an expiration date 1 hour in the future.
           var tokenId = helpers.createRandomString(20);
           var expires = Date.now() + 1000 * 60 * 60;
@@ -343,7 +403,7 @@ handlers._tokens.post = function(data,callback){ // callback(200,tokenObject);
             }
           });
         } else {
-          callback(400,{'Error' : 'Password did not match the specified user\'s stored password'});
+          callback(400,{'Error' : 'Password mismatch or account email not confirmed.'});
         }
       } else {
         callback(400,{'Error' : 'Could not find the specified user.'});

@@ -97,59 +97,80 @@ helpers.usersCRUD = function(name, done){
     assert.equal(err,false);
     assert.deepEqual(payloadData,{});
     
-    // token post
+    // token post before account email confirmation
     helpers.createHttpsRequest('POST','/api/tokens',{
       "Content-Type": "application/json"
     },{},{
       "email": name + "@test.com",
       "password": "password"
     },(err,payloadData)=>{
-      assert.equal(err,false);
-      assert.notDeepEqual(payloadData,{});
-      assert.equal(name + "@test.com",payloadData.email);
-      locals.token1 = JSON.parse(JSON.stringify(payloadData));
-
-      // user get
-      helpers.createHttpsRequest('GET','/api/users',{
-        "Content-Type": "application/json",
-        "token": locals.token1.id
-      },{
-        "email": name + "@test.com"
-      },{},(err,payloadData)=>{
+      assert.equal(err,400);
+      
+      // account email confirmation
+      helpers.createHttpsRequest('POST','/api/confirmations',{
+        "Content-Type": "application/json"
+      },{},{
+        "email": name + "@test.com",
+        "password": "password",
+        "code": "****"
+      },(err,payloadData)=>{
         assert.equal(err,false);
-        assert.notDeepEqual(payloadData,{});
-        assert.equal(name + "@test.com",payloadData.email);
-        assert.equal(name,payloadData.name);
-  
-        // user put
-        helpers.createHttpsRequest('PUT','/api/users',{
-          "Content-Type": "application/json",
-          "token": locals.token1.id
+        
+        // token post after account email confirmation
+        helpers.createHttpsRequest('POST','/api/tokens',{
+          "Content-Type": "application/json"
         },{},{
-          "email":name + "@test.com",
-          "name": "Johnie"
+          "email": name + "@test.com",
+          "password": "password"
         },(err,payloadData)=>{
           assert.equal(err,false);
-          assert.deepEqual(payloadData,{});
-          
-          // user delete
-          helpers.createHttpsRequest('DELETE','/api/users',{
+          assert.notDeepEqual(payloadData,{});
+          assert.equal(name + "@test.com",payloadData.email);
+          locals.token1 = JSON.parse(JSON.stringify(payloadData));
+
+          // user get
+          helpers.createHttpsRequest('GET','/api/users',{
             "Content-Type": "application/json",
             "token": locals.token1.id
           },{
-            "email":name + "@test.com"
+            "email": name + "@test.com"
           },{},(err,payloadData)=>{
             assert.equal(err,false);
-            assert.deepEqual(payloadData,{});
-
-            // token delete
-            helpers.createHttpsRequest('DELETE','/api/tokens',{
-              "Content-Type": "application/json"
-            },{
-              "id": locals.token1.id
-            },{},(err,payloadData)=>{
+            assert.notDeepEqual(payloadData,{});
+            assert.equal(name + "@test.com",payloadData.email);
+            assert.equal(name,payloadData.name);
+      
+            // user put
+            helpers.createHttpsRequest('PUT','/api/users',{
+              "Content-Type": "application/json",
+              "token": locals.token1.id
+            },{},{
+              "email":name + "@test.com",
+              "name": "Johnie"
+            },(err,payloadData)=>{
               assert.equal(err,false);
               assert.deepEqual(payloadData,{});
+              
+              // user delete
+              helpers.createHttpsRequest('DELETE','/api/users',{
+                "Content-Type": "application/json",
+                "token": locals.token1.id
+              },{
+                "email":name + "@test.com"
+              },{},(err,payloadData)=>{
+                assert.equal(err,false);
+                assert.deepEqual(payloadData,{});
+
+                // token delete
+                helpers.createHttpsRequest('DELETE','/api/tokens',{
+                  "Content-Type": "application/json"
+                },{
+                  "id": locals.token1.id
+                },{},(err,payloadData)=>{
+                  assert.equal(err,false);
+                  assert.deepEqual(payloadData,{});
+                });
+              });
             });
           });
         });
@@ -176,54 +197,65 @@ helpers.tokensCRUD = function(name, done){
     assert.equal(err,false);
     assert.deepEqual(payloadData,{});
     
-    // token post
-    helpers.createHttpsRequest('POST','/api/tokens',{
+    // account email confirmation
+    helpers.createHttpsRequest('POST','/api/confirmations',{
       "Content-Type": "application/json"
     },{},{
       "email": name + "@test.com",
-      "password": "password"
+      "password": "password",
+      "code": "****"
     },(err,payloadData)=>{
       assert.equal(err,false);
-      assert.notDeepEqual(payloadData,{});
-      assert.equal(name + "@test.com",payloadData.email);
-      locals.token2 = JSON.parse(JSON.stringify(payloadData));
-
-      // token get
-      helpers.createHttpsRequest('GET','/api/tokens',{},{
-        "id": locals.token2.id
-      },{},(err,payloadData)=>{
+      
+      // token post
+      helpers.createHttpsRequest('POST','/api/tokens',{
+        "Content-Type": "application/json"
+      },{},{
+        "email": name + "@test.com",
+        "password": "password"
+      },(err,payloadData)=>{
         assert.equal(err,false);
         assert.notDeepEqual(payloadData,{});
         assert.equal(name + "@test.com",payloadData.email);
-          
-        // token put
-        helpers.createHttpsRequest('PUT','/api/tokens',{
-          "Content-Type": "application/json"
-        },{},{
-          "id": locals.token2.id,
-          "extend": true
-        },(err,payloadData)=>{
+        locals.token2 = JSON.parse(JSON.stringify(payloadData));
+
+        // token get
+        helpers.createHttpsRequest('GET','/api/tokens',{},{
+          "id": locals.token2.id
+        },{},(err,payloadData)=>{
           assert.equal(err,false);
-          assert.deepEqual(payloadData,{});
-          
-          // user delete
-          helpers.createHttpsRequest('DELETE','/api/users',{
-            "Content-Type": "application/json",
-            "token": locals.token2.id
-          },{
-            "email":name + "@test.com"
-          },{},(err,payloadData)=>{
+          assert.notDeepEqual(payloadData,{});
+          assert.equal(name + "@test.com",payloadData.email);
+            
+          // token put
+          helpers.createHttpsRequest('PUT','/api/tokens',{
+            "Content-Type": "application/json"
+          },{},{
+            "id": locals.token2.id,
+            "extend": true
+          },(err,payloadData)=>{
             assert.equal(err,false);
             assert.deepEqual(payloadData,{});
-
-            // token delete
-            helpers.createHttpsRequest('DELETE','/api/tokens',{
-              "Content-Type": "application/json"
+            
+            // user delete
+            helpers.createHttpsRequest('DELETE','/api/users',{
+              "Content-Type": "application/json",
+              "token": locals.token2.id
             },{
-              "id": locals.token2.id
+              "email":name + "@test.com"
             },{},(err,payloadData)=>{
               assert.equal(err,false);
               assert.deepEqual(payloadData,{});
+
+              // token delete
+              helpers.createHttpsRequest('DELETE','/api/tokens',{
+                "Content-Type": "application/json"
+              },{
+                "id": locals.token2.id
+              },{},(err,payloadData)=>{
+                assert.equal(err,false);
+                assert.deepEqual(payloadData,{});
+              });
             });
           });
         });
@@ -250,120 +282,131 @@ helpers.ordersCRUD = function(name, done){
     assert.equal(err,false);
     assert.deepEqual(payloadData,{});
     
-    // token post
-    helpers.createHttpsRequest('POST','/api/tokens',{
+    // user account email confirmation
+    helpers.createHttpsRequest('POST','/api/confirmations',{
       "Content-Type": "application/json"
     },{},{
       "email": name + "@test.com",
-      "password": "password"
+      "password": "password",
+      "code": "****"
     },(err,payloadData)=>{
       assert.equal(err,false);
-      assert.notDeepEqual(payloadData,{});
-      assert.equal(name + "@test.com",payloadData.email);
-      locals.token3 = JSON.parse(JSON.stringify(payloadData));
-
-      // menu get
-      helpers.createHttpsRequest('GET','/api/menu',{
-        "token": locals.token3.id,
-        "email": name + "@test.com"
-      },{},{},(err,payloadData)=>{
+      
+      // token post
+      helpers.createHttpsRequest('POST','/api/tokens',{
+        "Content-Type": "application/json"
+      },{},{
+        "email": name + "@test.com",
+        "password": "password"
+      },(err,payloadData)=>{
         assert.equal(err,false);
-        assert.deepEqual(payloadData,{
-          "Margherita": 2.90,
-          "Funghi": 3.60,
-          "Capricciosa": 3.30,
-          "Quattro Stagioni": 3.70,
-          "Vegetariana": 2.80,
-          "Marinara": 4.20,
-          "Peperoni": 3.40,
-          "Napolitana":3.50,
-          "Hawaii": 3.20,
-          "Maltija": 3.60,
-          "Calzone": 4.20,
-          "Rucola": 3.50,
-          "Bolognese": 3.60,
-          "Meat Feast": 4.30,
-          "Kebabpizza": 4.00,
-          "Mexicana": 3.90,
-          "Quattro Formaggi": 4.20
-        });
-        
-        // order post
-        helpers.createHttpsRequest('POST','/api/orders',{
-          "token": locals.token3.id
-        },{},{
-          "email": name + "@test.com",
-          "order": [1,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-        },(err,payloadData)=>{
-          assert.equal(err,false);
-          locals.order = payloadData;
-          
-          // order get
-          helpers.createHttpsRequest('GET','/api/orders',{
-            "token": locals.token3.id,
-            "email": name + "@test.com",
-            "order": locals.order.orderId
-          },{},{},(err,payloadData)=>{
-            assert.equal(err,false);
-            assert.equal(payloadData.id,locals.order.orderId);
-            assert.equal(payloadData.status,'accepted');
+        assert.notDeepEqual(payloadData,{});
+        assert.equal(name + "@test.com",payloadData.email);
+        locals.token3 = JSON.parse(JSON.stringify(payloadData));
 
-            // order put
-            helpers.createHttpsRequest('PUT','/api/orders',{
-              "Content-Type": "application/json",
+        // menu get
+        helpers.createHttpsRequest('GET','/api/menu',{
+          "token": locals.token3.id,
+          "email": name + "@test.com"
+        },{},{},(err,payloadData)=>{
+          assert.equal(err,false);
+          assert.deepEqual(payloadData,{
+            "Margherita": 2.90,
+            "Funghi": 3.60,
+            "Capricciosa": 3.30,
+            "Quattro Stagioni": 3.70,
+            "Vegetariana": 2.80,
+            "Marinara": 4.20,
+            "Peperoni": 3.40,
+            "Napolitana":3.50,
+            "Hawaii": 3.20,
+            "Maltija": 3.60,
+            "Calzone": 4.20,
+            "Rucola": 3.50,
+            "Bolognese": 3.60,
+            "Meat Feast": 4.30,
+            "Kebabpizza": 4.00,
+            "Mexicana": 3.90,
+            "Quattro Formaggi": 4.20
+          });
+          
+          // order post
+          helpers.createHttpsRequest('POST','/api/orders',{
+            "token": locals.token3.id
+          },{},{
+            "email": name + "@test.com",
+            "order": [1,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+          },(err,payloadData)=>{
+            assert.equal(err,false);
+            locals.order = payloadData;
+            
+            // order get
+            helpers.createHttpsRequest('GET','/api/orders',{
               "token": locals.token3.id,
-              "order": locals.order.orderId
-            },{},{
               "email": name + "@test.com",
-              "order":[5,5,5,5,0,0,0,0,0,0,0,0,0,0,0,0,0]
-            },(err,payloadData)=>{
+              "order": locals.order.orderId
+            },{},{},(err,payloadData)=>{
               assert.equal(err,false);
-              
-              // order payment
-              helpers.createHttpsRequest('POST','/api/orders/payments',{
+              assert.equal(payloadData.id,locals.order.orderId);
+              assert.equal(payloadData.status,'accepted');
+
+              // order put
+              helpers.createHttpsRequest('PUT','/api/orders',{
                 "Content-Type": "application/json",
                 "token": locals.token3.id,
-                "email":name + "@test.com"
-              },{
-                "id": locals.order.orderId,
-                "source": encodeURIComponent("tok_visa"),
-                "currency": "usd",
-                "description": encodeURIComponent("pizza order test stripe payment")
-              },{},(err,payloadData)=>{
+                "order": locals.order.orderId
+              },{},{
+                "email": name + "@test.com",
+                "order":[5,5,5,5,0,0,0,0,0,0,0,0,0,0,0,0,0]
+              },(err,payloadData)=>{
                 assert.equal(err,false);
-                assert.deepEqual(payloadData,{
-                  "Success": "Check your email for details"
-              });
-
-                // order delete
-                helpers.createHttpsRequest('DELETE','/api/orders',{
+                
+                // order payment
+                helpers.createHttpsRequest('POST','/api/orders/payments',{
                   "Content-Type": "application/json",
                   "token": locals.token3.id,
-                  "email": name + "@test.com"
+                  "email":name + "@test.com"
                 },{
-                  "id": locals.order.orderId
+                  "id": locals.order.orderId,
+                  "source": encodeURIComponent("tok_visa"),
+                  "currency": "usd",
+                  "description": encodeURIComponent("pizza order test stripe payment")
                 },{},(err,payloadData)=>{
-                  assert.equal(err,403);
-                  assert.deepEqual(payloadData,{'Error' : 'Order is not amendable'});
+                  assert.equal(err,false);
+                  assert.deepEqual(payloadData,{
+                    "Success": "Check your email for details"
+                });
 
-                  // user delete
-                  helpers.createHttpsRequest('DELETE','/api/users',{
+                  // order delete
+                  helpers.createHttpsRequest('DELETE','/api/orders',{
                     "Content-Type": "application/json",
-                    "token": locals.token3.id
-                  },{
+                    "token": locals.token3.id,
                     "email": name + "@test.com"
+                  },{
+                    "id": locals.order.orderId
                   },{},(err,payloadData)=>{
-                    assert.equal(err,false);
-                    assert.deepEqual(payloadData,{});
+                    assert.equal(err,403);
+                    assert.deepEqual(payloadData,{'Error' : 'Order is not amendable'});
 
-                    // token delete
-                    helpers.createHttpsRequest('DELETE','/api/tokens',{
-                      "Content-Type": "application/json"
+                    // user delete
+                    helpers.createHttpsRequest('DELETE','/api/users',{
+                      "Content-Type": "application/json",
+                      "token": locals.token3.id
                     },{
-                      "id": locals.token3.id
+                      "email": name + "@test.com"
                     },{},(err,payloadData)=>{
                       assert.equal(err,false);
                       assert.deepEqual(payloadData,{});
+
+                      // token delete
+                      helpers.createHttpsRequest('DELETE','/api/tokens',{
+                        "Content-Type": "application/json"
+                      },{
+                        "id": locals.token3.id
+                      },{},(err,payloadData)=>{
+                        assert.equal(err,false);
+                        assert.deepEqual(payloadData,{});
+                      });
                     });
                   });
                 });

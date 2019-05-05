@@ -127,7 +127,7 @@ handlers._users.post = function(data,callback){ // callback(200)
           var userObject = {
             'name' : name,
             'email' : email,
-            'code': config.envName !== 'testing' ? helpers.createRandomString(4) : '00000', // dummy code 00000 for test cases
+            'code': config.envName !== 'testing' ? helpers.createRandomString(4) : '****', // dummy code **** for test cases
             'address' : address,
             'hashedPassword' : hashedPassword
           };
@@ -135,7 +135,7 @@ handlers._users.post = function(data,callback){ // callback(200)
           // Store the user and notify the email for its account confirmation code
           _data.create('users',email,userObject,function(err){
             if(!err){
-              // do not send dummy code 00000 to testing email
+              // do not send dummy code **** to testing email
               if (config.envName !== 'testing') {
                 // send code to the email, for confirmation
                 helpers.createMailgunNotification(email, `Your Swifty Tasty Pizza account code for email confirmation: ${userObject.code}.`, (error, message)=>{
@@ -333,6 +333,7 @@ handlers.confirmations = function(data,callback){
   if(acceptableMethods.indexOf(data.method) > -1){
     handlers._confirmations[data.method](data,callback);
   } else {
+    debuglog(`confirmations method not accepted.`);
     callback(405);
   }
 };
@@ -358,21 +359,26 @@ handlers._confirmations.post = function(data,callback){ // callback(200)
           data.code = 'confirmed';
           _data.update('users',email,data,function(error){
             if (!error) {
+              debuglog(`confirmations.post route ok.`);
               callback(200);
             } else {
+              debuglog(`confirmations.post route failure to update users.`);
               callback(500);
             }
           })
         } else {
+          debuglog(`confirmations.post route failure, email\ password\ account confirmation code mismatch.`);
           callback(500,{'Error' : `Email\ password\ account confirmation code mismatch.`});
         }
       } else {
         // User not found in storage
+        debuglog(`confirmations.post route failure, user's account not found.`);
         callback(400,{'Error' : `User's account not found.`});
       }
     });
   } else {
-    callback(400,{'Error' : 'Missing or bad formatted required fields'});
+    debuglog(`confirmations.post route failure, missing or bad formatted required fields.`);
+    callback(400,{'Error' : 'Missing or bad formatted required fields.'});
   }
 
 };
@@ -383,6 +389,7 @@ handlers.tokens = function(data,callback){ // from data.method desides which of 
   if(acceptableMethods.indexOf(data.method) > -1){
     handlers._tokens[data.method](data,callback);
   } else {
+    debuglog(`tokens.post method not accepted.`);
     callback(405);
   }
 };
@@ -391,7 +398,7 @@ handlers.tokens = function(data,callback){ // from data.method desides which of 
 handlers._tokens  = {};
 
 // Tokens - post
-// Required data: email, password
+// Required data: email, password ( account email verification code is not required, but should be confirmed )
 // Optional data: none
 handlers._tokens.post = function(data,callback){ // callback(200,tokenObject);
   var email = typeof(data.payload.email) == 'string' ? data.payload.email.trim() : false;
@@ -402,7 +409,7 @@ handlers._tokens.post = function(data,callback){ // callback(200,tokenObject);
       if(!err && userData ){
         // Hash the sent password, and compare it to the password stored in the user object
         var hashedPassword = helpers.hash(password);
-        if(hashedPassword == userData.hashedPassword && userData.code.length !== 4){ // valid password and code 'confirmed' or '00000' for bulk api testing
+        if(hashedPassword == userData.hashedPassword && userData.code === 'confirmed'){ // valid password and code 'confirmed'
           // If valid, create a new token with a random name. Set an expiration date 1 hour in the future.
           var tokenId = helpers.createRandomString(20);
           var expires = Date.now() + 1000 * 60 * 60;
@@ -415,19 +422,24 @@ handlers._tokens.post = function(data,callback){ // callback(200,tokenObject);
           // Store the token
           _data.create('tokens',tokenId,tokenObject,function(err){
             if(!err){
+              debuglog(`tokens.post route ok.`);
               callback(200,tokenObject);
             } else {
-              callback(500,{'Error' : 'Could not create the new token'});
+              debuglog(`tokens.post route failure, could not create the new token.`);
+              callback(500,{'Error' : 'Could not create the new token.'});
             }
           });
         } else {
+          debuglog(`tokens.post route failure, password mismatch or account email not confirmed.`);
           callback(400,{'Error' : 'Password mismatch or account email not confirmed.'});
         }
       } else {
+        debuglog(`tokens.post route failure, could not find the specified user.`);
         callback(400,{'Error' : 'Could not find the specified user.'});
       }
     });
   } else {
+    debuglog(`tokens.post route failure, missing required field(s).`);
     callback(400,{'Error' : 'Missing required field(s).'})
   }
 };

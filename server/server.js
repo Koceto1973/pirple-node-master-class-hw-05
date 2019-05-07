@@ -53,6 +53,7 @@ server.requestReader = function(req,res){ debuglog('Server requested.');
         case ''               : chosenHandler = handlers.template; break;
         
         case 'account/create' : chosenHandler = handlers.template; break;
+        case 'account/verify' : chosenHandler = handlers.template; break;
         case 'account/edit'   : chosenHandler = handlers.template; break;
         case 'account/delete' : chosenHandler = handlers.template; break;
         case 'account/deleted': chosenHandler = handlers.template; break;
@@ -89,8 +90,8 @@ server.requestReader = function(req,res){ debuglog('Server requested.');
       
       // Route the request to the handler specified in the router
       try{
+        // redirection of http requests
         if ( helpers.getProtocol(req) === 'http' ) {
-          //redirection
           debuglog('Http request redirected to https root request.');
           // write the response
           res.setHeader('Location', 'https://blueberry-sundae-72578.herokuapp.com/');

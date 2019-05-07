@@ -201,7 +201,18 @@ app.formResponseProcessor = function(formId,requestPayload,responsePayload){
   
   // If account creation was successful, try to immediately log the user in
   if(formId == 'accountCreate'){
-    // Take the email and password, and use it to log the user in
+    // redirect to account email verification page
+    window.location = '/account/verify';
+  }
+
+  if(formId == 'sessionCreate'){
+    // save the new token and redirect
+    app.setSessionToken(responsePayload);
+    window.location = '/orders';
+  }
+
+  if(formId == 'accountVerify'){
+    // Take the email and code, and use it to log the user in
     var newPayload = {
       'email' : requestPayload.email,
       'password' : requestPayload.password
@@ -222,12 +233,6 @@ app.formResponseProcessor = function(formId,requestPayload,responsePayload){
         window.location = '/orders';
       }
     });
-  }
-
-  if(formId == 'sessionCreate'){
-    // save the new token and redirect
-    app.setSessionToken(responsePayload);
-    window.location = '/orders';
   }
 
   if(formId == 'accountEdit'){
@@ -605,7 +610,7 @@ app.loadOrdersMenu = function(){
   });
 }
 
-// container for sessionToken
+// container for sessionToken initiated false
 app.config = {
   'sessionToken' : false
 };
@@ -619,25 +624,6 @@ app.tokenRenewalLoop = function(){
       }
     });
   },1000 * 60);
-};
-
-// Get the session token object from localstorage and set it in the app.config sessionToken and in html body class
-app.getSessionToken = function(){
-  var tokenString = localStorage.getItem('token');
-  if(typeof(tokenString) == 'string'){
-    try{
-      var token = JSON.parse(tokenString);
-      app.config.sessionToken = token;
-      if(typeof(token) == 'object'){
-        app.setLoggedInClass(true);
-      } else {
-        app.setLoggedInClass(false);
-      }
-    }catch(e){
-      app.config.sessionToken = false;
-      app.setLoggedInClass(false);
-    }
-  }
 };
 
 // Renew the token ( extend it )
@@ -674,6 +660,25 @@ app.renewToken = function(callback){
   } else {
     app.setSessionToken(false);
     callback(true);
+  }
+};
+
+// Get the session token object from localstorage and set it in the app.config sessionToken and in html body class
+app.getSessionToken = function(){
+  var tokenString = localStorage.getItem('token');
+  if(typeof(tokenString) == 'string'){
+    try{
+      var token = JSON.parse(tokenString);
+      app.config.sessionToken = token;
+      if(typeof(token) == 'object'){
+        app.setLoggedInClass(true);
+      } else {
+        app.setLoggedInClass(false);
+      }
+    }catch(e){
+      app.config.sessionToken = false;
+      app.setLoggedInClass(false);
+    }
   }
 };
 

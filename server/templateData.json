@@ -12,6 +12,12 @@
     "head.description": "Signup is easy and only takes a few seconds.",
     "body.class":"accountCreate"
   },
+  "account/verify":{
+    "templateName":"accountVerify",
+    "head.title": "Verify your Account email first!",
+    "head.description": "Just use the code we've sent you to the provided email.",
+    "body.class":"accountVerify"
+  },
   "account/edit":{
     "templateName":"accountEdit",
     "head.title": "Edit your Account here !",
